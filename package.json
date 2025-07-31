@@ -40,6 +40,9 @@
     "access": "public"
   },
   "dependencies": {
+    "@types/node": "^24.1.0",
+    "ora": "^8.2.0",
+    "puppeteer": "^24.15.0",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
