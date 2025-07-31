@@ -1,0 +1,50 @@
+{
+  "name": "@nicacoder/webscreenshots",
+  "version": "0.0.1",
+  "description": "A simple CLI tool for capturing websites screenshots.",
+  "keywords": [
+    "screenshots",
+    "website",
+    "cli",
+    "automation",
+    "web"
+  ],
+  "homepage": "https://github.com/Nicacoder/webscreenshots#readme",
+  "bugs": {
+    "url": "https://github.com/Nicacoder/webscreenshots/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nicacoder/webscreenshots.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Nicacoder LLC",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "bin": {
+    "webscreenshots": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.5",
+    "@types/yargs": "^17.0.33",
+    "typescript": "^5.9.2"
+  }
+}
