@@ -16,6 +16,12 @@
       "type": "string",
       "description": "Folder to save screenshots"
     },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "browserOptions": {
       "type": "object",
       "properties": {
