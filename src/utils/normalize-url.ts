@@ -1,14 +1,11 @@
 export function normalizeUrl(input: string): string {
+  if (!/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(input)) {
+    input = `https://${input}`;
+  }
+
   try {
-    new URL(input);
-    return input;
+    return new URL(input).toString();
   } catch {
-    try {
-      const corrected = `https://${input}`;
-      new URL(corrected);
-      return corrected;
-    } catch {
-      throw new Error(`Invalid URL: "${input}"`);
-    }
+    throw new Error(`Invalid URL: "${input}"`);
   }
 }
