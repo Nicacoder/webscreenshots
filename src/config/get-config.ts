@@ -6,6 +6,22 @@ import { WebscreenshotsConfig } from './config.types';
 const DEFAULT_CONFIG: WebscreenshotsConfig = {
   url: '',
   outputDir: 'screenshots',
+  browserOptions: {
+    headless: true,
+  },
+  captureOptions: {
+    fullPage: true,
+    imageType: 'png',
+    quality: undefined,
+  },
+  viewports: [
+    {
+      name: 'desktop',
+      width: 1920,
+      height: 1080,
+      deviceScaleFactor: 1,
+    },
+  ],
 };
 
 export async function getConfig(
@@ -39,5 +55,8 @@ export async function getConfig(
   return {
     url: overrides.url ?? fileConfig.url ?? DEFAULT_CONFIG.url,
     outputDir: overrides.outputDir ?? fileConfig.outputDir ?? DEFAULT_CONFIG.outputDir,
+    browserOptions: { ...DEFAULT_CONFIG.browserOptions, ...fileConfig.browserOptions, ...overrides.browserOptions },
+    captureOptions: { ...DEFAULT_CONFIG.captureOptions, ...fileConfig.captureOptions, ...overrides.captureOptions },
+    viewports: overrides.viewports ?? fileConfig.viewports ?? DEFAULT_CONFIG.viewports,
   };
 }

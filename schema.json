@@ -10,13 +10,57 @@
     "url": {
       "type": "string",
       "format": "uri",
-      "description": "The website URL to capture (e.g., https://example.com)."
+      "description": "Website URL to capture"
     },
     "outputDir": {
       "type": "string",
-      "description": "Directory where screenshots will be saved (e.g., ./screenshots)."
+      "description": "Folder to save screenshots"
+    },
+    "browserOptions": {
+      "type": "object",
+      "properties": {
+        "headless": {
+          "type": "boolean",
+          "description": "Run browser in headless mode"
+        }
+      },
+      "additionalProperties": false
+    },
+    "captureOptions": {
+      "type": "object",
+      "properties": {
+        "fullPage": {
+          "type": "boolean",
+          "description": "Capture the full scrollable page"
+        },
+        "imageType": {
+          "type": "string",
+          "enum": ["png", "jpeg", "webp"],
+          "description": "Image format"
+        },
+        "quality": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Image quality (only for jpeg/webp)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "viewports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "width", "height"],
+        "properties": {
+          "name": { "type": "string" },
+          "width": { "type": "integer" },
+          "height": { "type": "integer" },
+          "deviceScaleFactor": { "type": "number" }
+        },
+        "additionalProperties": false
+      }
     }
   },
-  "required": ["url"],
   "additionalProperties": false
 }
