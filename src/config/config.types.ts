@@ -5,6 +5,8 @@ export interface WebscreenshotsConfig {
   browserOptions: BrowserOptions;
   captureOptions: CaptureOptions;
   viewports: Viewport[];
+  crawl?: boolean;
+  crawlOptions?: CrawlOptions;
 }
 
 export interface BrowserOptions {
@@ -22,4 +24,9 @@ export interface Viewport {
   width: number;
   height: number;
   deviceScaleFactor?: number;
+}
+
+export interface CrawlOptions {
+  crawlLimit?: number;
+  excludeRoutes?: string[];
 }

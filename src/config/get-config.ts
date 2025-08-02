@@ -23,6 +23,8 @@ const DEFAULT_CONFIG: WebscreenshotsConfig = {
       deviceScaleFactor: 1,
     },
   ],
+  crawl: false,
+  crawlOptions: undefined,
 };
 
 export async function getConfig(
@@ -60,5 +62,11 @@ export async function getConfig(
     browserOptions: { ...DEFAULT_CONFIG.browserOptions, ...fileConfig.browserOptions, ...overrides.browserOptions },
     captureOptions: { ...DEFAULT_CONFIG.captureOptions, ...fileConfig.captureOptions, ...overrides.captureOptions },
     viewports: overrides.viewports ?? fileConfig.viewports ?? DEFAULT_CONFIG.viewports,
+    crawl: overrides.crawl ?? fileConfig.crawl ?? DEFAULT_CONFIG.crawl,
+    crawlOptions: {
+      ...DEFAULT_CONFIG.crawlOptions,
+      ...fileConfig.crawlOptions,
+      ...overrides.crawlOptions,
+    },
   };
 }

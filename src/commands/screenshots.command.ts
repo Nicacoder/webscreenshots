@@ -1,6 +1,7 @@
 import { CommandModule, ArgumentsCamelCase } from 'yargs';
 import { getConfig } from '../config/get-config';
 import { captureScreenshots } from '../core/capture-screenshots';
+import { PuppeteerCrawlService } from '../services/puppeteer/puppeteer.crawl-service';
 import { PuppeteerScreenshotService } from '../services/puppeteer/puppeteer.screenshot-service';
 
 type Args = {
@@ -38,6 +39,7 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
     }
 
     const screenshotService = new PuppeteerScreenshotService();
-    await captureScreenshots(config, screenshotService);
+    const crawlService = new PuppeteerCrawlService();
+    await captureScreenshots(config, screenshotService, crawlService);
   },
 };

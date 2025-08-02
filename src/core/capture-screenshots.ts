@@ -1,17 +1,26 @@
 import ora from 'ora';
 import path from 'path';
-import { Viewport } from 'puppeteer';
-import { WebscreenshotsConfig, BrowserOptions, CaptureOptions } from '../config/config.types';
+import { WebscreenshotsConfig, BrowserOptions, CaptureOptions, Viewport } from '../config/config.types';
+import { CrawlService } from '../services/crawl-service';
 import { ScreenshotService } from '../services/screenshot-service';
 import { generateFileName } from '../utils/generate-file-name';
 import { normalizeUrl } from '../utils/normalize-url';
+import { crawlSite } from './crawl-site';
+import { normalizeRoute } from './normalize-route';
 
 export async function captureScreenshots(
   config: WebscreenshotsConfig,
-  screenshotService: ScreenshotService
+  screenshotService: ScreenshotService,
+  crawlService: CrawlService
 ): Promise<void> {
   const baseUrl = normalizeUrl(config.url);
-  const routes = config.routes?.length ? config.routes : [''];
+  let routes = config.routes.map(normalizeRoute);
+
+  if (config.crawl) {
+    const crawledUrls = await crawlSite(baseUrl, config.crawlOptions, crawlService);
+    const crawledRoutes = crawledUrls.map((url) => normalizeRoute(new URL(url).pathname));
+    routes = Array.from(new Set([...routes, ...crawledRoutes]));
+  }
 
   let successCount = 0;
   let failureCount = 0;

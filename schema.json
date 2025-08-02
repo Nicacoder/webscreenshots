@@ -66,6 +66,29 @@
         },
         "additionalProperties": false
       }
+    },
+    "crawl": {
+      "type": "boolean",
+      "description": "Enable crawling to discover internal routes"
+    },
+    "crawlOptions": {
+      "type": "object",
+      "description": "Options for crawling",
+      "properties": {
+        "crawlLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of pages to crawl"
+        },
+        "excludeRoutes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of route prefixes to exclude during crawling"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
