@@ -4,9 +4,9 @@ import { WebscreenshotsConfig, BrowserOptions, CaptureOptions, Viewport } from '
 import { CrawlService } from '../services/crawl-service';
 import { ScreenshotService } from '../services/screenshot-service';
 import { generateFileName } from '../utils/generate-file-name';
+import { normalizeRoute } from '../utils/normalize-route';
 import { normalizeUrl } from '../utils/normalize-url';
 import { crawlSite } from './crawl-site';
-import { normalizeRoute } from './normalize-route';
 
 export async function captureScreenshots(
   config: WebscreenshotsConfig,
