@@ -1,8 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import puppeteer, { Browser, ImageFormat, Viewport } from 'puppeteer';
-import { ScreenshotService } from '../screenshot-service';
-import { BrowserOptions, CaptureOptions } from '../../config/config.types';
+import { ScreenshotService } from '../screenshot-service.js';
+import { BrowserOptions, CaptureOptions } from '../../config/config.types.js';
 
 export class PuppeteerScreenshotService implements ScreenshotService {
   private browser?: Browser;

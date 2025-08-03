@@ -1,12 +1,12 @@
 import ora from 'ora';
 import path from 'path';
-import { WebscreenshotsConfig, BrowserOptions, CaptureOptions, Viewport } from '../config/config.types';
-import { CrawlService } from '../services/crawl-service';
-import { ScreenshotService } from '../services/screenshot-service';
-import { generateFileName } from '../utils/generate-file-name';
-import { normalizeRoute } from '../utils/normalize-route';
-import { normalizeUrl } from '../utils/normalize-url';
-import { crawlSite } from './crawl-site';
+import { WebscreenshotsConfig, BrowserOptions, CaptureOptions, Viewport } from '../config/config.types.js';
+import { CrawlService } from '../services/crawl-service.js';
+import { ScreenshotService } from '../services/screenshot-service.js';
+import { generateFileName } from '../utils/generate-file-name.js';
+import { normalizeRoute } from '../utils/normalize-route.js';
+import { normalizeUrl } from '../utils/normalize-url.js';
+import { crawlSite } from './crawl-site.js';
 
 export async function captureScreenshots(
   config: WebscreenshotsConfig,

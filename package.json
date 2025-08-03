@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "author": "Nicacoder LLC",
-  "type": "commonjs",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "webscreenshots": "dist/index.js"

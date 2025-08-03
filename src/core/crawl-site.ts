@@ -1,8 +1,8 @@
 import ora from 'ora';
-import { CrawlOptions } from '../config/config.types';
-import { CrawlService } from '../services/crawl-service';
-import { normalizeRoute } from '../utils/normalize-route';
-import { UrlRoutesAnalyzer } from '../utils/url-routes-analyzer';
+import { CrawlOptions } from '../config/config.types.js';
+import { CrawlService } from '../services/crawl-service.js';
+import { normalizeRoute } from '../utils/normalize-route.js';
+import { UrlRoutesAnalyzer } from '../utils/url-routes-analyzer.js';
 
 export async function crawlSite(
   startUrl: string,

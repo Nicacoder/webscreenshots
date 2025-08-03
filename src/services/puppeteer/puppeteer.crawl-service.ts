@@ -1,5 +1,5 @@
 import puppeteer, { Browser } from 'puppeteer';
-import { CrawlService } from '../crawl-service';
+import { CrawlService } from '../crawl-service.js';
 
 export class PuppeteerCrawlService implements CrawlService {
   private browser!: Browser;

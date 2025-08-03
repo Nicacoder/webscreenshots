@@ -1,9 +1,9 @@
 import { CommandModule, ArgumentsCamelCase } from 'yargs';
-import { getConfig } from '../config/get-config';
-import { captureScreenshots } from '../core/capture-screenshots';
-import { PuppeteerCrawlService } from '../services/puppeteer/puppeteer.crawl-service';
-import { PuppeteerScreenshotService } from '../services/puppeteer/puppeteer.screenshot-service';
-import { WebscreenshotsConfig } from '../config/config.types';
+import { getConfig } from '../config/get-config.js';
+import { captureScreenshots } from '../core/capture-screenshots.js';
+import { PuppeteerCrawlService } from '../services/puppeteer/puppeteer.crawl-service.js';
+import { PuppeteerScreenshotService } from '../services/puppeteer/puppeteer.screenshot-service.js';
+import { WebscreenshotsConfig } from '../config/config.types.js';
 
 type Args = {
   site?: string;

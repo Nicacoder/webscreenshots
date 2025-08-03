@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
-import { WebscreenshotsConfig } from './config.types';
+import { WebscreenshotsConfig } from './config.types.js';
 
 const DEFAULT_CONFIG: WebscreenshotsConfig = {
   url: '',
