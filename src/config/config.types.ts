@@ -29,4 +29,5 @@ export interface Viewport {
 export interface CrawlOptions {
   crawlLimit?: number;
   excludeRoutes?: string[];
+  dynamicRoutesLimit?: number;
 }

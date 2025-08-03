@@ -3,10 +3,15 @@ import { getConfig } from '../config/get-config';
 import { captureScreenshots } from '../core/capture-screenshots';
 import { PuppeteerCrawlService } from '../services/puppeteer/puppeteer.crawl-service';
 import { PuppeteerScreenshotService } from '../services/puppeteer/puppeteer.screenshot-service';
+import { WebscreenshotsConfig } from '../config/config.types';
 
 type Args = {
-  site: string;
-  config: string;
+  site?: string;
+  output?: string;
+  config?: string;
+  crawl?: boolean;
+  crawlLimit?: number;
+  dynamicRoutesLimit?: number;
 };
 
 export const screenshotsCommand: CommandModule<{}, Args> = {
@@ -25,13 +30,35 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
       type: 'string',
       describe: 'Path to the config file',
     },
+    crawl: {
+      type: 'boolean',
+      describe: 'Enable crawling to discover internal routes',
+    },
+    crawlLimit: {
+      type: 'number',
+      describe: 'Maximum number of pages to crawl',
+    },
+    dynamicRoutesLimit: {
+      type: 'number',
+      describe: 'Maximum number of dynamic routes to include per group',
+    },
   },
 
   handler: async (args: ArgumentsCamelCase<Args>) => {
-    const configOverrides: Partial<{ url: string; outputDir: string }> = {
-      url: args.site as string,
-      outputDir: args.output as string,
-    };
+    const configOverrides: Partial<WebscreenshotsConfig> = {};
+
+    if (args.site) configOverrides.url = args.site;
+    if (args.output) configOverrides.outputDir = args.output;
+    if (args.crawl !== undefined) configOverrides.crawl = args.crawl;
+
+    if (args.crawlLimit !== undefined || args.dynamicRoutesLimit !== undefined) {
+      configOverrides.crawlOptions = {
+        ...(configOverrides.crawlOptions ?? {}),
+        ...(args.crawlLimit !== undefined && { crawlLimit: args.crawlLimit }),
+        ...(args.dynamicRoutesLimit !== undefined && { dynamicRoutesLimit: args.dynamicRoutesLimit }),
+      };
+    }
+
     const config = await getConfig(configOverrides, args.config);
     if (!config.url) {
       console.error('❌ Missing required "url". Provide it via CLI or config file.');

@@ -84,4 +84,93 @@ describe('crawlSite', () => {
 
     expect(result).toEqual([]);
   });
+
+  it('should respect dynamicRoutesLimit', async () => {
+    crawlService = createMockCrawlService({
+      'https://example.com': [
+        'https://example.com/products',
+        'https://example.com/products/1',
+        'https://example.com/products/2',
+        'https://example.com/products/3',
+        'https://example.com/products/4',
+        'https://example.com/products/5',
+        'https://example.com/about',
+      ],
+      'https://example.com/products/1': [],
+      'https://example.com/products/2': [],
+      'https://example.com/products/3': [],
+      'https://example.com/products/4': [],
+      'https://example.com/products/5': [],
+      'https://example.com/about': [],
+    });
+
+    const result = await crawlSite('https://example.com', { dynamicRoutesLimit: 3 }, crawlService);
+
+    const expected = [
+      'https://example.com',
+      'https://example.com/products',
+      'https://example.com/products/1',
+      'https://example.com/products/2',
+      'https://example.com/products/3',
+      'https://example.com/about',
+    ];
+
+    expect(result.sort()).toEqual(expected.sort());
+  });
+
+  it('should respect dynamicRoutesLimit with nested routes', async () => {
+    crawlService = createMockCrawlService({
+      'https://example.com': [
+        'https://example.com/products/1',
+        'https://example.com/products/2',
+        'https://example.com/products/3',
+        'https://example.com/products/4',
+        'https://example.com/products/5',
+      ],
+      'https://example.com/products/1': [
+        'https://example.com/products/1/edit',
+        'https://example.com/products/1/delete',
+      ],
+      'https://example.com/products/2': [
+        'https://example.com/products/2/edit',
+        'https://example.com/products/2/delete',
+      ],
+      'https://example.com/products/3': [
+        'https://example.com/products/3/edit',
+        'https://example.com/products/3/delete',
+      ],
+      'https://example.com/products/4': [
+        'https://example.com/products/4/edit',
+        'https://example.com/products/4/delete',
+      ],
+      'https://example.com/products/5': [
+        'https://example.com/products/5/edit',
+        'https://example.com/products/5/delete',
+      ],
+      'https://example.com/products/1/edit': [],
+      'https://example.com/products/1/delete': [],
+      'https://example.com/products/2/edit': [],
+      'https://example.com/products/2/delete': [],
+      'https://example.com/products/3/edit': [],
+      'https://example.com/products/3/delete': [],
+      'https://example.com/products/4/edit': [],
+      'https://example.com/products/4/delete': [],
+      'https://example.com/products/5/edit': [],
+      'https://example.com/products/5/delete': [],
+    });
+
+    const result = await crawlSite('https://example.com', { dynamicRoutesLimit: 2 }, crawlService);
+
+    const expected = [
+      'https://example.com',
+      'https://example.com/products/1',
+      'https://example.com/products/2',
+      'https://example.com/products/1/edit',
+      'https://example.com/products/1/delete',
+      'https://example.com/products/2/edit',
+      'https://example.com/products/2/delete',
+    ];
+
+    expect(result.sort()).toEqual(expected.sort());
+  });
 });
