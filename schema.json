@@ -27,7 +27,15 @@
       "properties": {
         "headless": {
           "type": "boolean",
+          "default": true,
           "description": "Run browser in headless mode"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional arguments to pass to Puppeteer (e.g. --no-sandbox)"
         }
       },
       "additionalProperties": false

@@ -1,11 +1,14 @@
 import puppeteer, { Browser } from 'puppeteer';
+import { BrowserOptions } from '../../config/config.types.js';
 import { CrawlService } from '../crawl-service.js';
 
 export class PuppeteerCrawlService implements CrawlService {
   private browser!: Browser;
 
-  async extractLinks(url: string): Promise<string[]> {
-    if (!this.browser) this.browser = await puppeteer.launch({ headless: true });
+  async extractLinks(url: string, browserOptions: BrowserOptions): Promise<string[]> {
+    if (!this.browser)
+      this.browser = await puppeteer.launch({ headless: browserOptions.headless, args: browserOptions.args });
+
     const page = await this.browser.newPage();
     let links: string[] = [];
     try {

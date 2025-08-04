@@ -24,7 +24,7 @@ describe('crawlSite', () => {
       'https://example.com/team': [],
     });
 
-    const result = await crawlSite('https://example.com', {}, crawlService);
+    const result = await crawlSite('https://example.com', {}, {}, crawlService);
     expect(result.sort()).toEqual([
       'https://example.com',
       'https://example.com/about',
@@ -40,7 +40,7 @@ describe('crawlSite', () => {
       'https://example.com/b': [],
     });
 
-    const result = await crawlSite('https://example.com', { crawlLimit: 2 }, crawlService);
+    const result = await crawlSite('https://example.com', {}, { crawlLimit: 2 }, crawlService);
     expect(result.length).toBe(2);
   });
 
@@ -50,7 +50,7 @@ describe('crawlSite', () => {
       'https://example.com/a': ['https://example.com'],
     });
 
-    const result = await crawlSite('https://example.com', {}, crawlService);
+    const result = await crawlSite('https://example.com', {}, {}, crawlService);
     expect(result).toContain('https://example.com/a');
     expect(result.length).toBe(2);
   });
@@ -62,7 +62,7 @@ describe('crawlSite', () => {
       'https://example.com/private': [],
     });
 
-    const result = await crawlSite('https://example.com', { excludeRoutes: ['/private'] }, crawlService);
+    const result = await crawlSite('https://example.com', {}, { excludeRoutes: ['/private'] }, crawlService);
 
     expect(result).toContain('https://example.com');
     expect(result).toContain('https://example.com/public');
@@ -80,7 +80,7 @@ describe('crawlSite', () => {
       cleanup: vi.fn(async () => {}),
     };
 
-    const result = await crawlSite('https://example.com/bad', {}, crawlService);
+    const result = await crawlSite('https://example.com/bad', {}, {}, crawlService);
 
     expect(result).toEqual([]);
   });
@@ -104,7 +104,7 @@ describe('crawlSite', () => {
       'https://example.com/about': [],
     });
 
-    const result = await crawlSite('https://example.com', { dynamicRoutesLimit: 3 }, crawlService);
+    const result = await crawlSite('https://example.com', {}, { dynamicRoutesLimit: 3 }, crawlService);
 
     const expected = [
       'https://example.com',
@@ -159,7 +159,7 @@ describe('crawlSite', () => {
       'https://example.com/products/5/delete': [],
     });
 
-    const result = await crawlSite('https://example.com', { dynamicRoutesLimit: 2 }, crawlService);
+    const result = await crawlSite('https://example.com', {}, { dynamicRoutesLimit: 2 }, crawlService);
 
     const expected = [
       'https://example.com',

@@ -17,7 +17,9 @@ export class PuppeteerScreenshotService implements ScreenshotService {
     const dir = path.dirname(outputPath);
     await fs.mkdir(dir, { recursive: true });
 
-    if (!this.browser) this.browser = await puppeteer.launch({ headless: browserOptions.headless ?? true });
+    if (!this.browser)
+      this.browser = await puppeteer.launch({ headless: browserOptions.headless, args: browserOptions.args });
+
     const page = await this.browser.newPage();
     await page.setViewport({
       width: viewport.width,

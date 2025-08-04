@@ -9,6 +9,7 @@ const DEFAULT_CONFIG: WebscreenshotsConfig = {
   routes: [''],
   browserOptions: {
     headless: true,
+    args: undefined,
   },
   captureOptions: {
     fullPage: true,

@@ -1,15 +1,16 @@
 import ora from 'ora';
-import { CrawlOptions } from '../config/config.types.js';
+import { BrowserOptions, CrawlOptions } from '../config/config.types.js';
 import { CrawlService } from '../services/crawl-service.js';
 import { normalizeRoute } from '../utils/normalize-route.js';
 import { UrlRoutesAnalyzer } from '../utils/url-routes-analyzer.js';
 
 export async function crawlSite(
   startUrl: string,
-  options: CrawlOptions = {},
+  browserOptions: BrowserOptions = {},
+  crawlOptions: CrawlOptions = {},
   crawlService: CrawlService
 ): Promise<string[]> {
-  const { crawlLimit, excludeRoutes, dynamicRoutesLimit } = options;
+  const { crawlLimit, excludeRoutes, dynamicRoutesLimit } = crawlOptions;
   const normalizedExcludeRoutes = excludeRoutes?.map(normalizeRoute);
 
   console.log(`🔍 Crawling ${startUrl}`);
@@ -38,7 +39,7 @@ export async function crawlSite(
 
     spinner.start();
     try {
-      const links = await crawlService.extractLinks(url);
+      const links = await crawlService.extractLinks(url, browserOptions);
       visited.add(url);
       analyzer.addUrls([url]);
 

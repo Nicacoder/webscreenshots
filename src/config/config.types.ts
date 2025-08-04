@@ -10,7 +10,8 @@ export interface WebscreenshotsConfig {
 }
 
 export interface BrowserOptions {
-  headless: boolean;
+  headless?: boolean;
+  args?: string[];
 }
 
 export interface CaptureOptions {

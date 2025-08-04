@@ -17,7 +17,7 @@ export async function captureScreenshots(
   let routes = config.routes.map(normalizeRoute);
 
   if (config.crawl) {
-    const crawledUrls = await crawlSite(baseUrl, config.crawlOptions, crawlService);
+    const crawledUrls = await crawlSite(baseUrl, config.browserOptions, config.crawlOptions, crawlService);
     const crawledRoutes = crawledUrls.map((url) => normalizeRoute(new URL(url).pathname));
     routes = Array.from(new Set([...routes, ...crawledRoutes]));
   }

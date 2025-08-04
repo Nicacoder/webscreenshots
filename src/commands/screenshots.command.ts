@@ -12,6 +12,7 @@ type Args = {
   crawl?: boolean;
   crawlLimit?: number;
   dynamicRoutesLimit?: number;
+  browserArgs?: string[];
 };
 
 export const screenshotsCommand: CommandModule<{}, Args> = {
@@ -42,6 +43,11 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
       type: 'number',
       describe: 'Maximum number of dynamic routes to include per group',
     },
+    browserArgs: {
+      type: 'array',
+      describe: 'Additional arguments to pass to the Puppeteer browser instance',
+      string: true,
+    },
   },
 
   handler: async (args: ArgumentsCamelCase<Args>) => {
@@ -56,6 +62,13 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
         ...(configOverrides.crawlOptions ?? {}),
         ...(args.crawlLimit !== undefined && { crawlLimit: args.crawlLimit }),
         ...(args.dynamicRoutesLimit !== undefined && { dynamicRoutesLimit: args.dynamicRoutesLimit }),
+      };
+    }
+
+    if (args.browserArgs !== undefined) {
+      configOverrides.browserOptions = {
+        ...(configOverrides.browserOptions ?? {}),
+        args: args.browserArgs as string[],
       };
     }
 
