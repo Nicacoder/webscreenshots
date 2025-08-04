@@ -6,8 +6,8 @@ import { UrlRoutesAnalyzer } from '../utils/url-routes-analyzer.js';
 
 export async function crawlSite(
   startUrl: string,
-  browserOptions: BrowserOptions = {},
-  crawlOptions: CrawlOptions = {},
+  browserOptions: BrowserOptions,
+  crawlOptions: CrawlOptions,
   crawlService: CrawlService
 ): Promise<string[]> {
   const { crawlLimit, excludeRoutes, dynamicRoutesLimit } = crawlOptions;

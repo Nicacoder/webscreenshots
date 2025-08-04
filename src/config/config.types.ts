@@ -5,17 +5,17 @@ export interface WebscreenshotsConfig {
   browserOptions: BrowserOptions;
   captureOptions: CaptureOptions;
   viewports: Viewport[];
-  crawl?: boolean;
+  crawl: boolean;
   crawlOptions?: CrawlOptions;
 }
 
 export interface BrowserOptions {
-  headless?: boolean;
+  headless: boolean;
   args?: string[];
 }
 
 export interface CaptureOptions {
-  fullPage: boolean;
+  fullPage?: boolean;
   imageType: 'png' | 'jpeg' | 'webp';
   quality?: number;
 }

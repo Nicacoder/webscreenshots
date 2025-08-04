@@ -59,7 +59,7 @@ export async function getConfig(
   return {
     url: overrides.url ?? fileConfig.url ?? DEFAULT_CONFIG.url,
     outputDir: overrides.outputDir ?? fileConfig.outputDir ?? DEFAULT_CONFIG.outputDir,
-    routes: fileConfig.routes ?? DEFAULT_CONFIG.routes,
+    routes: overrides.routes ?? fileConfig.routes ?? DEFAULT_CONFIG.routes,
     browserOptions: { ...DEFAULT_CONFIG.browserOptions, ...fileConfig.browserOptions, ...overrides.browserOptions },
     captureOptions: { ...DEFAULT_CONFIG.captureOptions, ...fileConfig.captureOptions, ...overrides.captureOptions },
     viewports: overrides.viewports ?? fileConfig.viewports ?? DEFAULT_CONFIG.viewports,
