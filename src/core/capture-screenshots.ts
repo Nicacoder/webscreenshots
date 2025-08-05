@@ -1,4 +1,3 @@
-import ora from 'ora';
 import path from 'path';
 import {
   WebscreenshotsConfig,
@@ -8,6 +7,7 @@ import {
   RetryOptions,
 } from '../config/config.types.js';
 import { CrawlService } from '../services/crawl-service.js';
+import { LogService } from '../services/log-service.js';
 import { ScreenshotService } from '../services/screenshot-service.js';
 import { generateFileName } from '../utils/generate-file-name.js';
 import { normalizeRoute } from '../utils/normalize-route.js';
@@ -18,7 +18,8 @@ import { crawlSite } from './crawl-site.js';
 export async function captureScreenshots(
   config: WebscreenshotsConfig,
   screenshotService: ScreenshotService,
-  crawlService: CrawlService
+  crawlService: CrawlService,
+  logService: LogService
 ): Promise<void> {
   const baseUrl = normalizeUrl(config.url);
   let routes = config.routes.map(normalizeRoute);
@@ -26,27 +27,38 @@ export async function captureScreenshots(
   if (config.crawl) {
     const crawledUrls = await crawlSite(
       crawlService,
+      logService,
       baseUrl,
       config.browserOptions,
       config.crawlOptions ?? {},
       config.retryOptions
     );
+
+    if (crawledUrls.length === 0) {
+      logService.error('Unable to reach the URL. Aborting screenshot capture.');
+      await crawlService.cleanup();
+      process.exit(1);
+    }
+
     const crawledRoutes = crawledUrls.map((url) => normalizeRoute(new URL(url).pathname));
     routes = Array.from(new Set([...routes, ...crawledRoutes]));
   }
 
+  logService.log('\n');
+  logService.log(`📸 Capturing screenshots from ${baseUrl}`);
   let successCount = 0;
   let failureCount = 0;
 
   const viewports = config.viewports;
   for (const viewport of viewports) {
-    console.log(`\nViewport: ${viewport.name} (${viewport.width}x${viewport.height})`);
+    logService.log(`\nViewport: ${viewport.name} (${viewport.width}x${viewport.height})`);
     for (const route of routes) {
       const fullUrl = new URL(route, baseUrl).toString();
       const fileName = generateFileName(fullUrl, viewport.name, config.captureOptions.imageType);
       const outputPath = path.join(config.outputDir, viewport.name, fileName);
       const success = await captureScreenshot(
         screenshotService,
+        logService,
         fullUrl,
         outputPath,
         viewport,
@@ -58,12 +70,14 @@ export async function captureScreenshots(
       else failureCount++;
     }
   }
-  await cleanup(screenshotService);
-  printSummary(successCount, failureCount);
+
+  await cleanup(screenshotService, logService);
+  printSummary(logService, successCount, failureCount);
 }
 
 async function captureScreenshot(
   screenshotService: ScreenshotService,
+  logService: LogService,
   url: string,
   outputPath: string,
   viewport: Viewport,
@@ -74,16 +88,23 @@ async function captureScreenshot(
   const { maxAttempts = 1, delayMs = 0 } = retryOptions;
   let attempt = 0;
 
-  const spinner = ora(`📸 Capturing: ${url}`).start();
+  logService.start(`📸 Capturing: ${url}`);
+
   while (attempt < maxAttempts) {
     attempt++;
-    if (attempt > 1) spinner.start(`📸 Capturing: ${url} (attempt ${attempt}/${retryOptions.maxAttempts})`);
+    if (attempt > 1) {
+      logService.log(`🔁 Retry (${attempt}/${retryOptions.maxAttempts}): ${url}`);
+    }
+
     try {
       await screenshotService.capture(url, outputPath, viewport, browserOptions, captureOptions);
-      spinner.succeed(`Saved ${url} → ${outputPath}`);
+      logService.success(`Saved ${url} → ${outputPath}\n`);
       return true;
     } catch (error) {
-      if (attempt >= maxAttempts) spinner.fail(`Failed to capture ${url}`);
+      if (attempt >= maxAttempts) {
+        logService.error(`Failed to capture: ${url}`);
+        logService.log(`↳ Reason: ${error instanceof Error ? error.message : String(error)}\n`);
+      }
       if (attempt < maxAttempts && delayMs > 0) {
         await sleep(delayMs);
       }
@@ -93,27 +114,27 @@ async function captureScreenshot(
   return false;
 }
 
-async function cleanup(screenshotService: ScreenshotService): Promise<void> {
-  console.log('');
-  const spinner = ora('🔄 Cleaning up...').start();
+async function cleanup(screenshotService: ScreenshotService, logService: LogService): Promise<void> {
+  logService.log('\n');
+  logService.start('🔄 Cleaning up');
   try {
     await screenshotService.release();
-    spinner.succeed('Cleanup complete.');
+    logService.success('Cleanup complete.');
   } catch {
-    spinner.fail('Failed during cleanup.');
+    logService.error('Failed during cleanup.');
     process.exit(1);
   }
 }
 
-function printSummary(successCount: number, failureCount: number): void {
-  console.log('\n📋 Summary');
-  console.log('---------------------');
-  console.log(`✅ Success: ${successCount}`);
-  console.log(`❌ Failures: ${failureCount}`);
+function printSummary(logService: LogService, successCount: number, failureCount: number): void {
+  logService.log('\n📋 Summary');
+  logService.log('---------------------');
+  logService.log(`✅ Success: ${successCount}`);
+  logService.log(`❌ Failures: ${failureCount}`);
 
   if (failureCount > 0) {
     process.exit(1);
   } else {
-    console.log('\nAll screenshots captured successfully!');
+    logService.log('\nAll screenshots captured successfully!');
   }
 }

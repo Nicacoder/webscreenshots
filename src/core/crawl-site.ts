@@ -1,12 +1,13 @@
-import ora from 'ora';
 import { BrowserOptions, CrawlOptions, RetryOptions } from '../config/config.types.js';
 import { CrawlService } from '../services/crawl-service.js';
 import { normalizeRoute } from '../utils/normalize-route.js';
 import { UrlRoutesAnalyzer } from '../utils/url-routes-analyzer.js';
 import { sleep } from '../utils/sleep.js';
+import { LogService } from '../services/log-service.js';
 
 export async function crawlSite(
   crawlService: CrawlService,
+  logService: LogService,
   startUrl: string,
   browserOptions: BrowserOptions,
   crawlOptions: CrawlOptions,
@@ -15,8 +16,8 @@ export async function crawlSite(
   const { crawlLimit, excludeRoutes, dynamicRoutesLimit } = crawlOptions;
   const normalizedExcludeRoutes = excludeRoutes?.map(normalizeRoute);
 
-  console.log(`🔍 Crawling ${startUrl}`);
-  const spinner = ora().start();
+  logService.log('\n');
+  logService.log(`🔍 Starting crawl: ${startUrl}\n`);
 
   const visited = new Set<string>();
   const queue: string[] = [startUrl];
@@ -34,13 +35,12 @@ export async function crawlSite(
     if (dynamicRoutesLimit !== undefined) {
       const info = analyzer.getGroupInfo(url);
       if (info && info.count >= dynamicRoutesLimit) {
-        spinner.info(`Skipping (group limit reached) - ${url}`);
+        logService.log(`Skipping (group limit reached) - ${url}`);
         continue;
       }
     }
 
-    spinner.text = url;
-    spinner.start();
+    logService.start(`➡️  Visiting: ${url}`);
 
     let attempt = 0;
     const { maxAttempts = 1, delayMs = 0 } = retryOptions;
@@ -48,16 +48,18 @@ export async function crawlSite(
     while (attempt < maxAttempts) {
       try {
         attempt++;
-        if (attempt > 1) spinner.start(`${url} (attempt ${attempt}/${retryOptions.maxAttempts})`);
+        if (attempt > 1) {
+          logService.log(`🔁 Retry (${attempt}/${maxAttempts}): ${url}`);
+        }
 
         const links = await crawlService.extractLinks(url, browserOptions);
         visited.add(url);
         analyzer.addUrls([url]);
 
-        spinner.stop();
-        spinner.info(
-          crawlLimit ? `Found (${visited.size}/${crawlLimit}) - ${url}` : `Found (${visited.size}) - ${url}`
-        );
+        const msg = crawlLimit
+          ? `🔗 Found page ${visited.size} of ${crawlLimit}\n`
+          : `🔗 Found page ${visited.size} (no limit)\n`;
+        logService.log(msg);
 
         for (const link of links) {
           if (link.startsWith(origin) && !visited.has(link)) {
@@ -66,13 +68,12 @@ export async function crawlSite(
         }
         break;
       } catch (error) {
-        if (attempt >= maxAttempts) spinner.fail(`Failed to crawl: ${url}`);
-
-        if (attempt < maxAttempts && delayMs > 0) {
+        if (attempt >= maxAttempts) {
+          logService.error(`Unreachable after ${attempt} attempts: ${url}`);
+          logService.log(`↳ Reason: ${error instanceof Error ? error.message : String(error)}\n`);
+        } else if (delayMs > 0) {
           await sleep(delayMs);
         }
-      } finally {
-        spinner.stop();
       }
     }
   }

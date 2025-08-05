@@ -157,7 +157,6 @@ This project is built using:
 - **[Node.js](https://nodejs.org/)** – Runtime environment
 - **[TypeScript](https://www.typescriptlang.org/)** – Static type checking
 - **[Puppeteer](https://pptr.dev/)** – Headless browser automation for capturing screenshots
-- **[Ora](https://www.npmjs.com/package/ora)** – Elegant terminal spinners for status feedback
 - **[Yargs](https://www.npmjs.com/package/yargs)** – CLI argument parsing
 
 ---

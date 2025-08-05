@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
 import { WebscreenshotsConfig } from './config.types.js';
+import { LogService } from '../services/log-service.js';
 
 const DEFAULT_CONFIG: WebscreenshotsConfig = {
   url: '',
@@ -33,6 +34,7 @@ const DEFAULT_CONFIG: WebscreenshotsConfig = {
 };
 
 export async function getConfig(
+  logService: LogService,
   overrides: Partial<WebscreenshotsConfig> = {},
   configPath?: string
 ): Promise<WebscreenshotsConfig> {
@@ -51,13 +53,13 @@ export async function getConfig(
         const imported = await import(pathToFileURL(resolvedPath).href);
         fileConfig = imported.default ?? imported;
       }
-      console.log(`✅ Loaded config from ${resolvedPath}`);
+      logService.success(`Loaded config from ${resolvedPath}`);
     } catch (err) {
-      console.error(`❌ Failed to load config from ${resolvedPath}:`);
+      logService.error(`Failed to load config from ${resolvedPath}:`);
       process.exit();
     }
   } else {
-    console.warn('⚠️  No config file found, using defaults');
+    logService.warning('No config file found, using defaults');
   }
 
   return {

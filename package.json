@@ -41,7 +41,6 @@
     "access": "public"
   },
   "dependencies": {
-    "ora": "^8.2.0",
     "puppeteer": "^24.15.0",
     "yargs": "^17.7.2"
   },

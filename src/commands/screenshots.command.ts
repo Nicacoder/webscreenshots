@@ -1,6 +1,7 @@
 import { CommandModule, ArgumentsCamelCase } from 'yargs';
 import { getConfig } from '../config/get-config.js';
 import { captureScreenshots } from '../core/capture-screenshots.js';
+import { LogService } from '../services/log-service.js';
 import { PuppeteerCrawlService } from '../services/puppeteer/puppeteer.crawl-service.js';
 import { PuppeteerScreenshotService } from '../services/puppeteer/puppeteer.screenshot-service.js';
 
@@ -77,14 +78,16 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
       };
     }
 
-    const config = await getConfig(configOverrides, args.config);
+    const logService = new LogService();
+
+    const config = await getConfig(logService, configOverrides, args.config);
     if (!config.url) {
-      console.error('❌ Missing required "url". Provide it via CLI or config file.');
+      logService.error('Missing required "url". Provide it via CLI or config file.');
       process.exit(1);
     }
 
     const screenshotService = new PuppeteerScreenshotService();
     const crawlService = new PuppeteerCrawlService();
-    await captureScreenshots(config, screenshotService, crawlService);
+    await captureScreenshots(config, screenshotService, crawlService, logService);
   },
 };

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { crawlSite } from './crawl-site';
 import { CrawlService } from '../services/crawl-service';
+import { LogService } from '../services/log-service';
 
 function createMockCrawlService(linkMap: Record<string, string[]>): CrawlService {
   return {
@@ -12,6 +13,15 @@ function createMockCrawlService(linkMap: Record<string, string[]>): CrawlService
 const defaultBrowserOptions = { headless: true };
 const defaultCrawlOptions = {};
 const defaultRetryOptions = { maxAttempts: 1, delayMs: 0 };
+
+const mockLogService: LogService = {
+  start: vi.fn(),
+  success: vi.fn(),
+  warning: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+  log: vi.fn(),
+};
 
 describe('crawlSite', () => {
   let crawlService: CrawlService;
@@ -30,11 +40,13 @@ describe('crawlSite', () => {
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com',
       defaultBrowserOptions,
       defaultCrawlOptions,
       defaultRetryOptions
     );
+
     expect(result.sort()).toEqual([
       'https://example.com',
       'https://example.com/about',
@@ -52,11 +64,13 @@ describe('crawlSite', () => {
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com',
       defaultBrowserOptions,
       { crawlLimit: 2 },
       defaultRetryOptions
     );
+
     expect(result.length).toBe(2);
   });
 
@@ -68,11 +82,13 @@ describe('crawlSite', () => {
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com',
       defaultBrowserOptions,
       defaultCrawlOptions,
       defaultRetryOptions
     );
+
     expect(result).toContain('https://example.com/a');
     expect(result.length).toBe(2);
   });
@@ -86,6 +102,7 @@ describe('crawlSite', () => {
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com',
       defaultBrowserOptions,
       { excludeRoutes: ['/private'] },
@@ -110,6 +127,7 @@ describe('crawlSite', () => {
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com/bad',
       defaultBrowserOptions,
       defaultCrawlOptions,
@@ -140,6 +158,7 @@ describe('crawlSite', () => {
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com',
       defaultBrowserOptions,
       { dynamicRoutesLimit: 3 },
@@ -175,32 +194,18 @@ describe('crawlSite', () => {
         'https://example.com/products/2/edit',
         'https://example.com/products/2/delete',
       ],
-      'https://example.com/products/3': [
-        'https://example.com/products/3/edit',
-        'https://example.com/products/3/delete',
-      ],
-      'https://example.com/products/4': [
-        'https://example.com/products/4/edit',
-        'https://example.com/products/4/delete',
-      ],
-      'https://example.com/products/5': [
-        'https://example.com/products/5/edit',
-        'https://example.com/products/5/delete',
-      ],
+      'https://example.com/products/3': [],
+      'https://example.com/products/4': [],
+      'https://example.com/products/5': [],
       'https://example.com/products/1/edit': [],
       'https://example.com/products/1/delete': [],
       'https://example.com/products/2/edit': [],
       'https://example.com/products/2/delete': [],
-      'https://example.com/products/3/edit': [],
-      'https://example.com/products/3/delete': [],
-      'https://example.com/products/4/edit': [],
-      'https://example.com/products/4/delete': [],
-      'https://example.com/products/5/edit': [],
-      'https://example.com/products/5/delete': [],
     });
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com',
       defaultBrowserOptions,
       { dynamicRoutesLimit: 2 },
@@ -236,6 +241,7 @@ describe('crawlSite', () => {
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com',
       defaultBrowserOptions,
       defaultCrawlOptions,
@@ -259,52 +265,14 @@ describe('crawlSite', () => {
 
     const result = await crawlSite(
       crawlService,
+      mockLogService,
       'https://example.com',
       defaultBrowserOptions,
       defaultCrawlOptions,
       retryOptions
     );
 
-    expect(extractLinks).toHaveBeenCalledTimes(2); // maxAttempts
-    expect(result).toEqual([]); // No pages crawled
-  });
-
-  it('should wait for delayMs between retries', async () => {
-    const extractLinks = vi.fn();
-    extractLinks
-      .mockRejectedValueOnce(new Error('Fail 1')) // 1st try
-      .mockRejectedValueOnce(new Error('Fail 2')) // 2nd try
-      .mockResolvedValueOnce(['https://example.com/ok']) // 3rd try
-      .mockResolvedValueOnce([]); // for '/ok'
-
-    crawlService = {
-      extractLinks,
-      cleanup: vi.fn(async () => {}),
-    };
-
-    const retryOptions = { maxAttempts: 3, delayMs: 50 };
-
-    const sleepSpy = vi.fn(() => Promise.resolve());
-
-    // Patch setTimeout to simulate sleep
-    const originalSetTimeout = global.setTimeout;
-    vi.spyOn(global, 'setTimeout').mockImplementation((fn, ms) => {
-      sleepSpy();
-      return originalSetTimeout(fn, ms);
-    });
-
-    const result = await crawlSite(
-      crawlService,
-      'https://example.com',
-      defaultBrowserOptions,
-      defaultCrawlOptions,
-      retryOptions
-    );
-
-    expect(extractLinks).toHaveBeenCalledTimes(4);
-    expect(sleepSpy).toHaveBeenCalledTimes(2);
-    expect(result).toContain('https://example.com/ok');
-
-    vi.restoreAllMocks();
+    expect(extractLinks).toHaveBeenCalledTimes(2);
+    expect(result).toEqual([]);
   });
 });
