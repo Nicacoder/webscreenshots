@@ -8,6 +8,7 @@ import { PuppeteerScreenshotService } from '../services/puppeteer/puppeteer.scre
 type Args = {
   url?: string;
   output?: string;
+  outputPattern?: string;
   config?: string;
   crawl?: boolean;
   crawlLimit?: number;
@@ -29,6 +30,10 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
   builder: {
     url: { type: 'string', describe: 'The website URL to capture' },
     output: { type: 'string', describe: 'Folder to save the screenshot in' },
+    outputPattern: {
+      type: 'string',
+      describe: 'Pattern for generated file names (default: {host}/{viewport}/{host}-{viewport}-{route}.{ext})',
+    },
     config: { type: 'string', describe: 'Path to the config file' },
     crawl: { type: 'boolean', describe: 'Enable crawling to discover internal routes' },
     crawlLimit: { type: 'number', describe: 'Max number of pages to crawl' },
@@ -49,6 +54,7 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
 
     if (args.url) configOverrides.url = args.url;
     if (args.output) configOverrides.outputDir = args.output;
+    if (args.outputPattern) configOverrides.outputPattern = args.outputPattern;
     if (args.routes) configOverrides.routes = args.routes as string[];
     if (args.crawl !== undefined) configOverrides.crawl = args.crawl;
 

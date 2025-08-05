@@ -1,6 +1,7 @@
 export interface WebscreenshotsConfig {
   url: string;
   outputDir: string;
+  outputPattern: string;
   routes: string[];
   browserOptions: BrowserOptions;
   captureOptions: CaptureOptions;

@@ -1,4 +1,3 @@
-import path from 'path';
 import {
   WebscreenshotsConfig,
   BrowserOptions,
@@ -9,7 +8,7 @@ import {
 import { CrawlService } from '../services/crawl-service.js';
 import { LogService } from '../services/log-service.js';
 import { ScreenshotService } from '../services/screenshot-service.js';
-import { generateFileName } from '../utils/generate-file-name.js';
+import { generateFilePath } from '../utils/generate-file-path.js';
 import { normalizeRoute } from '../utils/normalize-route.js';
 import { normalizeUrl } from '../utils/normalize-url.js';
 import { sleep } from '../utils/sleep.js';
@@ -50,12 +49,31 @@ export async function captureScreenshots(
   let failureCount = 0;
 
   const viewports = config.viewports;
+  const timestamp = new Date();
+
   for (const viewport of viewports) {
     logService.log(`\nViewport: ${viewport.name} (${viewport.width}x${viewport.height})`);
     for (const route of routes) {
       const fullUrl = new URL(route, baseUrl).toString();
-      const fileName = generateFileName(fullUrl, viewport.name, config.captureOptions.imageType);
-      const outputPath = path.join(config.outputDir, viewport.name, fileName);
+      const outputPath = generateFilePath({
+        url: fullUrl,
+        viewport: viewport.name,
+        extension: config.captureOptions.imageType,
+        pattern: config.outputPattern,
+        outputDir: config.outputDir,
+        timestamp: timestamp,
+      });
+      console.log({
+        options: {
+          url: fullUrl,
+          viewport: viewport.name,
+          extension: config.captureOptions.imageType,
+          pattern: config.outputPattern,
+          outputDir: config.outputDir,
+        },
+        outputPath: outputPath,
+      });
+
       const success = await captureScreenshot(
         screenshotService,
         logService,

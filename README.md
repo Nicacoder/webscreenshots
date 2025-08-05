@@ -14,7 +14,6 @@ Supports crawling, full-page capture, and custom configuration.
 - Custom image format and quality
 - JPEG/WebP quality control
 - Headless or non-headless mode
-- Pass extra browser args to Puppeteer
 
 ---
 
@@ -48,6 +47,7 @@ npx @nicacoder/webscreenshots --url https://example.com
 | ---------------------- | --------- | ------------------------------------------------------ |
 | `--url`                | string    | Website URL to capture (required unless set in config) |
 | `--output`             | string    | Output directory for screenshots                       |
+| `--outputPattern`      | string    | Pattern for generated file paths and names             |
 | `--config`             | string    | Path to a config file (`.json`, `.js`, or `.ts`)       |
 | `--routes`             | string\[] | Specific routes to capture (`/`, `/about`, etc.)       |
 | `--excludeRoutes`      | string\[] | Routes to exclude during crawling                      |
@@ -84,6 +84,7 @@ npx @nicacoder/webscreenshots --config ./path/to/config.json
 {
   "url": "https://example.com",
   "outputDir": "./screenshots",
+  "outputPattern": "{host}/{viewport}/{host}-{viewport}-{route}-{timestamp}.{ext}",
   "routes": ["/", "/products", "/contact"],
   "browserOptions": {
     "headless": true,
@@ -123,30 +124,44 @@ npx @nicacoder/webscreenshots --config ./path/to/config.json
 
 ## 📁 Output Structure
 
-Screenshots are saved inside folders by **viewport name**, and filenames follow a descriptive pattern:
+Screenshots are saved inside folders by **site** and **viewport name**, and filenames follow a customizable pattern.
 
 ### Folder Structure
 
 ```
 screenshots/
-├── mobile/
-│   ├── example-com-products-summer-sale-mobile.jpeg
-│   └── example-com-contact-mobile.jpeg
-└── desktop/
-    ├── example-com-products-summer-sale-desktop.jpeg
-    └── example-com-contact-desktop.jpeg
+├── example-com/
+│   ├── desktop/
+│   │   ├── example-com-desktop-home.png
+│   │   └── example-com-desktop-docs-about.png
+│   └── mobile/
+│       ├── example-com-mobile-contact.png
+│       └── example-com-mobile-products.png
+└── another-site-com/
+    └── desktop/
+        └── another-site-com-desktop-home.png
 ```
 
 ### Filename Pattern
 
+By default, files are named using this pattern:
+
 ```
-<domain>-<route-name>-<viewport-name>.<ext>
+{host}/{viewport}/{host}-{viewport}-{route}.{ext}
 ```
 
-- **Domain**: Sanitized version of the site (e.g. `example.com` → `example-com`)
-- **Route**: Path segments joined by hyphens (e.g. `/products/summer-sale`)
-- **Viewport**: From the `viewport.name` in config
-- **Extension**: Based on `imageType` (`png`, `jpeg`, or `webp`)
+- `{host}` — Sanitized domain name (dots replaced with dashes, e.g. `example.com` → `example-com`)
+- `{viewport}` — Viewport name (lowercased, spaces replaced with dashes)
+- `{route}` — URL path segments joined by dashes (`/docs/about` → `docs-about`)
+- `{ext}` — File extension matching the image format (`png`, `jpeg`, or `webp`)
+
+You can customize the pattern in your config or CLI options, including adding timestamps:
+
+```
+{host}/{viewport}/{host}-{viewport}-{route}-{timestamp}.{ext}
+```
+
+Where `{timestamp}` is an ISO timestamp safe for filenames (colons and dots replaced with dashes).
 
 ---
 

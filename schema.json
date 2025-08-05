@@ -16,6 +16,10 @@
       "type": "string",
       "description": "Folder to save screenshots"
     },
+    "outputPattern": {
+      "type": "string",
+      "description": "Pattern for generated file names (default: {host}/{viewport}/{host}-{viewport}-{route}.{ext})"
+    },
     "routes": {
       "type": "array",
       "items": {

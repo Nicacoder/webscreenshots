@@ -7,6 +7,7 @@ import { LogService } from '../services/log-service.js';
 const DEFAULT_CONFIG: WebscreenshotsConfig = {
   url: '',
   outputDir: 'screenshots',
+  outputPattern: '{host}/{viewport}/{host}-{viewport}-{route}.{ext}',
   routes: [''],
   browserOptions: {
     headless: true,
@@ -65,6 +66,7 @@ export async function getConfig(
   return {
     url: overrides.url ?? fileConfig.url ?? DEFAULT_CONFIG.url,
     outputDir: overrides.outputDir ?? fileConfig.outputDir ?? DEFAULT_CONFIG.outputDir,
+    outputPattern: overrides.outputPattern ?? fileConfig.outputPattern ?? DEFAULT_CONFIG.outputPattern,
     routes: overrides.routes ?? fileConfig.routes ?? DEFAULT_CONFIG.routes,
     browserOptions: { ...DEFAULT_CONFIG.browserOptions, ...fileConfig.browserOptions, ...overrides.browserOptions },
     captureOptions: { ...DEFAULT_CONFIG.captureOptions, ...fileConfig.captureOptions, ...overrides.captureOptions },

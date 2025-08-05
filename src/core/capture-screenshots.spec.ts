@@ -23,6 +23,7 @@ const retryOptions = { maxAttempts: 1, delayMs: 0 };
 const defaultConfig: WebscreenshotsConfig = {
   url: 'https://example.com',
   outputDir: 'screenshots',
+  outputPattern: '{host}/{viewport}/{host}-{viewport}-{route}.{ext}',
   routes: ['/'],
   crawl: false,
   viewports: [viewport],
