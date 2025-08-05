@@ -59,6 +59,8 @@ npx @nicacoder/webscreenshots --url https://example.com
 | `--quality`            | number    | Image quality (0–100, only for `jpeg` and `webp`)      |
 | `--headless`           | boolean   | Run browser in headless mode (default: true)           |
 | `--browserArgs`        | string\[] | Extra arguments to pass to `puppeteer.launch()`        |
+| `--maxAttempts`        | number    | Max number of attempts before giving up (default: 1)   |
+| `--delayMs`            | number    | Delay in ms between retry attempts (default: 0)        |
 
 ---
 
@@ -109,6 +111,10 @@ npx @nicacoder/webscreenshots --config ./path/to/config.json
     "crawlLimit": 30,
     "excludeRoutes": ["/admin"],
     "dynamicRoutesLimit": 5
+  },
+  "retryOptions": {
+    "maxAttempts": 3,
+    "delayMs": 1000
   }
 }
 ```

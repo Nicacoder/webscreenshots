@@ -26,6 +26,10 @@ const DEFAULT_CONFIG: WebscreenshotsConfig = {
   ],
   crawl: false,
   crawlOptions: undefined,
+  retryOptions: {
+    maxAttempts: 3,
+    delayMs: 0,
+  },
 };
 
 export async function getConfig(
@@ -68,6 +72,11 @@ export async function getConfig(
       ...DEFAULT_CONFIG.crawlOptions,
       ...fileConfig.crawlOptions,
       ...overrides.crawlOptions,
+    },
+    retryOptions: {
+      ...DEFAULT_CONFIG.retryOptions,
+      ...fileConfig.retryOptions,
+      ...overrides.retryOptions,
     },
   };
 }

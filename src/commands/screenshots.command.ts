@@ -18,6 +18,8 @@ type Args = {
   quality?: number;
   headless?: boolean;
   browserArgs?: string[];
+  maxAttempts?: number;
+  delayMs?: number;
 };
 
 export const screenshotsCommand: CommandModule<{}, Args> = {
@@ -37,6 +39,8 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
     quality: { type: 'number', describe: 'Image quality (only for jpeg/webp)' },
     headless: { type: 'boolean', describe: 'Run browser in headless mode' },
     browserArgs: { type: 'array', describe: 'Arguments passed to puppeteer.launch' },
+    maxAttemtps: { type: 'number', describe: 'Maximum number of attempts (default: 1)' },
+    delayMs: { type: 'number', describe: 'Delay (ms) between retries' },
   },
 
   handler: async (args: ArgumentsCamelCase<Args>) => {
@@ -63,6 +67,13 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
         ...(args.crawlLimit !== undefined && { crawlLimit: args.crawlLimit }),
         ...(args.dynamicRoutesLimit !== undefined && { dynamicRoutesLimit: args.dynamicRoutesLimit }),
         ...(args.excludeRoutes && { excludeRoutes: args.excludeRoutes as string[] }),
+      };
+    }
+
+    if (args.maxAttempts || args.delayMs) {
+      configOverrides.retryOptions = {
+        ...(args.maxAttempts !== undefined && { maxAttempts: args.maxAttempts }),
+        ...(args.delayMs !== undefined && { delayMs: args.delayMs }),
       };
     }
 

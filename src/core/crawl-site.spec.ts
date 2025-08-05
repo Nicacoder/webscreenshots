@@ -9,6 +9,10 @@ function createMockCrawlService(linkMap: Record<string, string[]>): CrawlService
   };
 }
 
+const defaultBrowserOptions = { headless: true };
+const defaultCrawlOptions = {};
+const defaultRetryOptions = { maxAttempts: 1, delayMs: 0 };
+
 describe('crawlSite', () => {
   let crawlService: CrawlService;
 
@@ -24,7 +28,13 @@ describe('crawlSite', () => {
       'https://example.com/team': [],
     });
 
-    const result = await crawlSite('https://example.com', {}, {}, crawlService);
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      defaultCrawlOptions,
+      defaultRetryOptions
+    );
     expect(result.sort()).toEqual([
       'https://example.com',
       'https://example.com/about',
@@ -40,7 +50,13 @@ describe('crawlSite', () => {
       'https://example.com/b': [],
     });
 
-    const result = await crawlSite('https://example.com', {}, { crawlLimit: 2 }, crawlService);
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      { crawlLimit: 2 },
+      defaultRetryOptions
+    );
     expect(result.length).toBe(2);
   });
 
@@ -50,7 +66,13 @@ describe('crawlSite', () => {
       'https://example.com/a': ['https://example.com'],
     });
 
-    const result = await crawlSite('https://example.com', {}, {}, crawlService);
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      defaultCrawlOptions,
+      defaultRetryOptions
+    );
     expect(result).toContain('https://example.com/a');
     expect(result.length).toBe(2);
   });
@@ -62,7 +84,13 @@ describe('crawlSite', () => {
       'https://example.com/private': [],
     });
 
-    const result = await crawlSite('https://example.com', {}, { excludeRoutes: ['/private'] }, crawlService);
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      { excludeRoutes: ['/private'] },
+      defaultRetryOptions
+    );
 
     expect(result).toContain('https://example.com');
     expect(result).toContain('https://example.com/public');
@@ -80,7 +108,13 @@ describe('crawlSite', () => {
       cleanup: vi.fn(async () => {}),
     };
 
-    const result = await crawlSite('https://example.com/bad', {}, {}, crawlService);
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com/bad',
+      defaultBrowserOptions,
+      defaultCrawlOptions,
+      defaultRetryOptions
+    );
 
     expect(result).toEqual([]);
   });
@@ -104,7 +138,13 @@ describe('crawlSite', () => {
       'https://example.com/about': [],
     });
 
-    const result = await crawlSite('https://example.com', {}, { dynamicRoutesLimit: 3 }, crawlService);
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      { dynamicRoutesLimit: 3 },
+      defaultRetryOptions
+    );
 
     const expected = [
       'https://example.com',
@@ -159,7 +199,13 @@ describe('crawlSite', () => {
       'https://example.com/products/5/delete': [],
     });
 
-    const result = await crawlSite('https://example.com', {}, { dynamicRoutesLimit: 2 }, crawlService);
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      { dynamicRoutesLimit: 2 },
+      defaultRetryOptions
+    );
 
     const expected = [
       'https://example.com',
@@ -172,5 +218,93 @@ describe('crawlSite', () => {
     ];
 
     expect(result.sort()).toEqual(expected.sort());
+  });
+
+  it('should retry crawling on failure according to retryOptions', async () => {
+    const extractLinks = vi.fn();
+    extractLinks
+      .mockRejectedValueOnce(new Error('Temporary failure'))
+      .mockResolvedValueOnce(['https://example.com/next'])
+      .mockResolvedValueOnce([]);
+
+    crawlService = {
+      extractLinks,
+      cleanup: vi.fn(async () => {}),
+    };
+
+    const retryOptions = { maxAttempts: 3, delayMs: 10 };
+
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      defaultCrawlOptions,
+      retryOptions
+    );
+
+    expect(extractLinks).toHaveBeenCalledTimes(3);
+    expect(result).toContain('https://example.com');
+    expect(result).toContain('https://example.com/next');
+  });
+
+  it('should stop retrying after maxAttempts', async () => {
+    const extractLinks = vi.fn().mockRejectedValue(new Error('Persistent failure'));
+
+    crawlService = {
+      extractLinks,
+      cleanup: vi.fn(async () => {}),
+    };
+
+    const retryOptions = { maxAttempts: 2, delayMs: 0 };
+
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      defaultCrawlOptions,
+      retryOptions
+    );
+
+    expect(extractLinks).toHaveBeenCalledTimes(2); // maxAttempts
+    expect(result).toEqual([]); // No pages crawled
+  });
+
+  it('should wait for delayMs between retries', async () => {
+    const extractLinks = vi.fn();
+    extractLinks
+      .mockRejectedValueOnce(new Error('Fail 1')) // 1st try
+      .mockRejectedValueOnce(new Error('Fail 2')) // 2nd try
+      .mockResolvedValueOnce(['https://example.com/ok']) // 3rd try
+      .mockResolvedValueOnce([]); // for '/ok'
+
+    crawlService = {
+      extractLinks,
+      cleanup: vi.fn(async () => {}),
+    };
+
+    const retryOptions = { maxAttempts: 3, delayMs: 50 };
+
+    const sleepSpy = vi.fn(() => Promise.resolve());
+
+    // Patch setTimeout to simulate sleep
+    const originalSetTimeout = global.setTimeout;
+    vi.spyOn(global, 'setTimeout').mockImplementation((fn, ms) => {
+      sleepSpy();
+      return originalSetTimeout(fn, ms);
+    });
+
+    const result = await crawlSite(
+      crawlService,
+      'https://example.com',
+      defaultBrowserOptions,
+      defaultCrawlOptions,
+      retryOptions
+    );
+
+    expect(extractLinks).toHaveBeenCalledTimes(4);
+    expect(sleepSpy).toHaveBeenCalledTimes(2);
+    expect(result).toContain('https://example.com/ok');
+
+    vi.restoreAllMocks();
   });
 });

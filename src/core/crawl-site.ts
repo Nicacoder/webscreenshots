@@ -1,14 +1,16 @@
 import ora from 'ora';
-import { BrowserOptions, CrawlOptions } from '../config/config.types.js';
+import { BrowserOptions, CrawlOptions, RetryOptions } from '../config/config.types.js';
 import { CrawlService } from '../services/crawl-service.js';
 import { normalizeRoute } from '../utils/normalize-route.js';
 import { UrlRoutesAnalyzer } from '../utils/url-routes-analyzer.js';
+import { sleep } from '../utils/sleep.js';
 
 export async function crawlSite(
+  crawlService: CrawlService,
   startUrl: string,
   browserOptions: BrowserOptions,
   crawlOptions: CrawlOptions,
-  crawlService: CrawlService
+  retryOptions: RetryOptions
 ): Promise<string[]> {
   const { crawlLimit, excludeRoutes, dynamicRoutesLimit } = crawlOptions;
   const normalizedExcludeRoutes = excludeRoutes?.map(normalizeRoute);
@@ -37,24 +39,41 @@ export async function crawlSite(
       }
     }
 
+    spinner.text = url;
     spinner.start();
-    try {
-      const links = await crawlService.extractLinks(url, browserOptions);
-      visited.add(url);
-      analyzer.addUrls([url]);
 
-      spinner.stop();
-      spinner.info(crawlLimit ? `Found (${visited.size}/${crawlLimit}) - ${url}` : `Found (${visited.size}) - ${url}`);
+    let attempt = 0;
+    const { maxAttempts = 1, delayMs = 0 } = retryOptions;
 
-      for (const link of links) {
-        if (link.startsWith(origin) && !visited.has(link)) {
-          queue.push(link);
+    while (attempt < maxAttempts) {
+      try {
+        attempt++;
+        if (attempt > 1) spinner.start(`${url} (attempt ${attempt}/${retryOptions.maxAttempts})`);
+
+        const links = await crawlService.extractLinks(url, browserOptions);
+        visited.add(url);
+        analyzer.addUrls([url]);
+
+        spinner.stop();
+        spinner.info(
+          crawlLimit ? `Found (${visited.size}/${crawlLimit}) - ${url}` : `Found (${visited.size}) - ${url}`
+        );
+
+        for (const link of links) {
+          if (link.startsWith(origin) && !visited.has(link)) {
+            queue.push(link);
+          }
         }
+        break;
+      } catch (error) {
+        if (attempt >= maxAttempts) spinner.fail(`Failed to crawl: ${url}`);
+
+        if (attempt < maxAttempts && delayMs > 0) {
+          await sleep(delayMs);
+        }
+      } finally {
+        spinner.stop();
       }
-    } catch (error) {
-      spinner.warn(`⚠️ Failed to crawl: ${url}`);
-    } finally {
-      spinner.stop();
     }
   }
 

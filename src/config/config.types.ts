@@ -7,6 +7,7 @@ export interface WebscreenshotsConfig {
   viewports: Viewport[];
   crawl: boolean;
   crawlOptions?: CrawlOptions;
+  retryOptions: RetryOptions;
 }
 
 export interface BrowserOptions {
@@ -31,4 +32,9 @@ export interface CrawlOptions {
   crawlLimit?: number;
   excludeRoutes?: string[];
   dynamicRoutesLimit?: number;
+}
+
+export interface RetryOptions {
+  maxAttempts: number;
+  delayMs?: number;
 }
