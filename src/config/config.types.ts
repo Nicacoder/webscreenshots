@@ -17,7 +17,7 @@ export interface BrowserOptions {
 }
 
 export interface CaptureOptions {
-  fullPage?: boolean;
+  fullPage: boolean;
   imageType: 'png' | 'jpeg' | 'webp';
   quality?: number;
 }

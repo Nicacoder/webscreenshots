@@ -1,16 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { crawlSite } from './crawl-site';
-import { CrawlService } from '../services/crawl-service';
+import { BrowserService } from '../services/browser-service';
 import { LogService } from '../services/log-service';
 
-function createMockCrawlService(linkMap: Record<string, string[]>): CrawlService {
+function createMockBrowserService(linkMap: Record<string, string[]>): BrowserService {
   return {
-    extractLinks: vi.fn(async (url: string) => linkMap[url] || []),
+    captureScreenshot: vi.fn(),
+    extractLinks: vi.fn(async (url: string) => {
+      return linkMap[url] || [];
+    }),
     cleanup: vi.fn(async () => {}),
   };
 }
 
-const defaultBrowserOptions = { headless: true };
 const defaultCrawlOptions = {};
 const defaultRetryOptions = { maxAttempts: 1, delayMs: 0 };
 
@@ -24,14 +26,14 @@ const mockLogService: LogService = {
 };
 
 describe('crawlSite', () => {
-  let crawlService: CrawlService;
+  let browserService: BrowserService;
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should crawl all linked pages from startUrl', async () => {
-    crawlService = createMockCrawlService({
+    browserService = createMockBrowserService({
       'https://example.com': ['https://example.com/about', 'https://example.com/contact'],
       'https://example.com/about': ['https://example.com/team'],
       'https://example.com/contact': [],
@@ -39,10 +41,9 @@ describe('crawlSite', () => {
     });
 
     const result = await crawlSite(
-      crawlService,
+      browserService,
       mockLogService,
       'https://example.com',
-      defaultBrowserOptions,
       defaultCrawlOptions,
       defaultRetryOptions
     );
@@ -56,17 +57,16 @@ describe('crawlSite', () => {
   });
 
   it('should respect crawlLimit', async () => {
-    crawlService = createMockCrawlService({
+    browserService = createMockBrowserService({
       'https://example.com': ['https://example.com/a', 'https://example.com/b'],
       'https://example.com/a': [],
       'https://example.com/b': [],
     });
 
     const result = await crawlSite(
-      crawlService,
+      browserService,
       mockLogService,
       'https://example.com',
-      defaultBrowserOptions,
       { crawlLimit: 2 },
       defaultRetryOptions
     );
@@ -75,16 +75,15 @@ describe('crawlSite', () => {
   });
 
   it('should skip already visited URLs', async () => {
-    crawlService = createMockCrawlService({
+    browserService = createMockBrowserService({
       'https://example.com': ['https://example.com/a', 'https://example.com'],
       'https://example.com/a': ['https://example.com'],
     });
 
     const result = await crawlSite(
-      crawlService,
+      browserService,
       mockLogService,
       'https://example.com',
-      defaultBrowserOptions,
       defaultCrawlOptions,
       defaultRetryOptions
     );
@@ -94,17 +93,16 @@ describe('crawlSite', () => {
   });
 
   it('should exclude URLs matching excludeRoutes', async () => {
-    crawlService = createMockCrawlService({
+    browserService = createMockBrowserService({
       'https://example.com': ['https://example.com/private', 'https://example.com/public'],
       'https://example.com/public': [],
       'https://example.com/private': [],
     });
 
     const result = await crawlSite(
-      crawlService,
+      browserService,
       mockLogService,
       'https://example.com',
-      defaultBrowserOptions,
       { excludeRoutes: ['/private'] },
       defaultRetryOptions
     );
@@ -116,29 +114,29 @@ describe('crawlSite', () => {
 
   it('should handle errors gracefully and continue crawling', async () => {
     const extractLinks = vi.fn(async (url: string) => {
-      if (url === 'https://example.com/bad') throw new Error('Oops!');
+      if (url === 'https://example.com/bad') {
+        throw new Error('Oops!');
+      }
       return ['https://example.com/good'];
     });
 
-    crawlService = {
+    const cleanup = vi.fn();
+
+    const browserService = {
+      captureScreenshot: vi.fn(),
       extractLinks,
-      cleanup: vi.fn(async () => {}),
+      cleanup,
     };
 
-    const result = await crawlSite(
-      crawlService,
-      mockLogService,
-      'https://example.com/bad',
-      defaultBrowserOptions,
-      defaultCrawlOptions,
-      defaultRetryOptions
-    );
+    const result = await crawlSite(browserService, mockLogService, 'https://example.com/bad', {}, defaultRetryOptions);
 
     expect(result).toEqual([]);
+    expect(extractLinks).toHaveBeenCalled();
+    expect(cleanup).toHaveBeenCalled();
   });
 
   it('should respect dynamicRoutesLimit', async () => {
-    crawlService = createMockCrawlService({
+    browserService = createMockBrowserService({
       'https://example.com': [
         'https://example.com/products',
         'https://example.com/products/1',
@@ -157,10 +155,9 @@ describe('crawlSite', () => {
     });
 
     const result = await crawlSite(
-      crawlService,
+      browserService,
       mockLogService,
       'https://example.com',
-      defaultBrowserOptions,
       { dynamicRoutesLimit: 3 },
       defaultRetryOptions
     );
@@ -178,7 +175,7 @@ describe('crawlSite', () => {
   });
 
   it('should respect dynamicRoutesLimit with nested routes', async () => {
-    crawlService = createMockCrawlService({
+    browserService = createMockBrowserService({
       'https://example.com': [
         'https://example.com/products/1',
         'https://example.com/products/2',
@@ -204,10 +201,9 @@ describe('crawlSite', () => {
     });
 
     const result = await crawlSite(
-      crawlService,
+      browserService,
       mockLogService,
       'https://example.com',
-      defaultBrowserOptions,
       { dynamicRoutesLimit: 2 },
       defaultRetryOptions
     );
@@ -232,18 +228,17 @@ describe('crawlSite', () => {
       .mockResolvedValueOnce(['https://example.com/next'])
       .mockResolvedValueOnce([]);
 
-    crawlService = {
+    browserService = {
+      ...createMockBrowserService({}),
       extractLinks,
-      cleanup: vi.fn(async () => {}),
     };
 
     const retryOptions = { maxAttempts: 3, delayMs: 10 };
 
     const result = await crawlSite(
-      crawlService,
+      browserService,
       mockLogService,
       'https://example.com',
-      defaultBrowserOptions,
       defaultCrawlOptions,
       retryOptions
     );
@@ -256,18 +251,17 @@ describe('crawlSite', () => {
   it('should stop retrying after maxAttempts', async () => {
     const extractLinks = vi.fn().mockRejectedValue(new Error('Persistent failure'));
 
-    crawlService = {
+    browserService = {
+      ...createMockBrowserService({}),
       extractLinks,
-      cleanup: vi.fn(async () => {}),
     };
 
     const retryOptions = { maxAttempts: 2, delayMs: 0 };
 
     const result = await crawlSite(
-      crawlService,
+      browserService,
       mockLogService,
       'https://example.com',
-      defaultBrowserOptions,
       defaultCrawlOptions,
       retryOptions
     );

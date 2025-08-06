@@ -1,15 +1,14 @@
-import { BrowserOptions, CrawlOptions, RetryOptions } from '../config/config.types.js';
-import { CrawlService } from '../services/crawl-service.js';
-import { normalizeRoute } from '../utils/normalize-route.js';
-import { UrlRoutesAnalyzer } from '../utils/url-routes-analyzer.js';
-import { sleep } from '../utils/sleep.js';
+import { CrawlOptions, RetryOptions } from '../config/config.types.js';
+import { BrowserService } from '../services/browser-service.js';
 import { LogService } from '../services/log-service.js';
+import { normalizeRoute } from '../utils/normalize-route.js';
+import { sleep } from '../utils/sleep.js';
+import { UrlRoutesAnalyzer } from '../utils/url-routes-analyzer.js';
 
 export async function crawlSite(
-  crawlService: CrawlService,
+  browserService: BrowserService,
   logService: LogService,
   startUrl: string,
-  browserOptions: BrowserOptions,
   crawlOptions: CrawlOptions,
   retryOptions: RetryOptions
 ): Promise<string[]> {
@@ -52,7 +51,7 @@ export async function crawlSite(
           logService.log(`🔁 Retry (${attempt}/${maxAttempts}): ${url}`);
         }
 
-        const links = await crawlService.extractLinks(url, browserOptions);
+        const links = await browserService.extractLinks(url);
         visited.add(url);
         analyzer.addUrls([url]);
 
@@ -78,6 +77,6 @@ export async function crawlSite(
     }
   }
 
-  await crawlService.cleanup();
+  await browserService.cleanup();
   return Array.from(visited);
 }

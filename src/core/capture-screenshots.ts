@@ -1,13 +1,6 @@
-import {
-  WebscreenshotsConfig,
-  BrowserOptions,
-  CaptureOptions,
-  Viewport,
-  RetryOptions,
-} from '../config/config.types.js';
-import { CrawlService } from '../services/crawl-service.js';
+import { WebscreenshotsConfig, CaptureOptions, Viewport, RetryOptions } from '../config/config.types.js';
+import { BrowserService } from '../services/browser-service.js';
 import { LogService } from '../services/log-service.js';
-import { ScreenshotService } from '../services/screenshot-service.js';
 import { generateFilePath } from '../utils/generate-file-path.js';
 import { normalizeRoute } from '../utils/normalize-route.js';
 import { normalizeUrl } from '../utils/normalize-url.js';
@@ -16,8 +9,7 @@ import { crawlSite } from './crawl-site.js';
 
 export async function captureScreenshots(
   config: WebscreenshotsConfig,
-  screenshotService: ScreenshotService,
-  crawlService: CrawlService,
+  browserService: BrowserService,
   logService: LogService
 ): Promise<void> {
   const baseUrl = normalizeUrl(config.url);
@@ -25,17 +17,16 @@ export async function captureScreenshots(
 
   if (config.crawl) {
     const crawledUrls = await crawlSite(
-      crawlService,
+      browserService,
       logService,
       baseUrl,
-      config.browserOptions,
       config.crawlOptions ?? {},
       config.retryOptions
     );
 
     if (crawledUrls.length === 0) {
       logService.error('Unable to reach the URL. Aborting screenshot capture.');
-      await crawlService.cleanup();
+      await browserService.cleanup();
       process.exit(1);
     }
 
@@ -63,24 +54,13 @@ export async function captureScreenshots(
         outputDir: config.outputDir,
         timestamp: timestamp,
       });
-      console.log({
-        options: {
-          url: fullUrl,
-          viewport: viewport.name,
-          extension: config.captureOptions.imageType,
-          pattern: config.outputPattern,
-          outputDir: config.outputDir,
-        },
-        outputPath: outputPath,
-      });
 
       const success = await captureScreenshot(
-        screenshotService,
+        browserService,
         logService,
         fullUrl,
         outputPath,
         viewport,
-        config.browserOptions,
         config.captureOptions,
         config.retryOptions
       );
@@ -89,17 +69,16 @@ export async function captureScreenshots(
     }
   }
 
-  await cleanup(screenshotService, logService);
+  await cleanup(browserService, logService);
   printSummary(logService, successCount, failureCount);
 }
 
 async function captureScreenshot(
-  screenshotService: ScreenshotService,
+  broserService: BrowserService,
   logService: LogService,
   url: string,
   outputPath: string,
   viewport: Viewport,
-  browserOptions: BrowserOptions,
   captureOptions: CaptureOptions,
   retryOptions: RetryOptions
 ): Promise<boolean> {
@@ -115,7 +94,7 @@ async function captureScreenshot(
     }
 
     try {
-      await screenshotService.capture(url, outputPath, viewport, browserOptions, captureOptions);
+      await broserService.captureScreenshot(url, outputPath, captureOptions, viewport);
       logService.success(`Saved ${url} → ${outputPath}\n`);
       return true;
     } catch (error) {
@@ -132,11 +111,11 @@ async function captureScreenshot(
   return false;
 }
 
-async function cleanup(screenshotService: ScreenshotService, logService: LogService): Promise<void> {
+async function cleanup(browserService: BrowserService, logService: LogService): Promise<void> {
   logService.log('\n');
   logService.start('🔄 Cleaning up');
   try {
-    await screenshotService.release();
+    await browserService.cleanup();
     logService.success('Cleanup complete.');
   } catch {
     logService.error('Failed during cleanup.');

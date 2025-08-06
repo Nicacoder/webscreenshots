@@ -2,8 +2,7 @@ import { CommandModule, ArgumentsCamelCase } from 'yargs';
 import { getConfig } from '../config/get-config.js';
 import { captureScreenshots } from '../core/capture-screenshots.js';
 import { LogService } from '../services/log-service.js';
-import { PuppeteerCrawlService } from '../services/puppeteer/puppeteer.crawl-service.js';
-import { PuppeteerScreenshotService } from '../services/puppeteer/puppeteer.screenshot-service.js';
+import { PuppeteerBrowserService } from '../services/puppeteer/puppeteer.browser-service.js';
 
 type Args = {
   url?: string;
@@ -92,8 +91,7 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
       process.exit(1);
     }
 
-    const screenshotService = new PuppeteerScreenshotService();
-    const crawlService = new PuppeteerCrawlService();
-    await captureScreenshots(config, screenshotService, crawlService, logService);
+    const browserService = new PuppeteerBrowserService(config.browserOptions);
+    await captureScreenshots(config, browserService, logService);
   },
 };
