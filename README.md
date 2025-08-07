@@ -122,6 +122,18 @@ npx @nicacoder/webscreenshots --config ./path/to/config.json
 
 ---
 
+## 🌱 Using `.env` File
+
+You can configure key options via environment variables in a `.env` file. Here are the most commonly used ones:
+
+| CLI Option | Environment Variable  | Example Value         |
+| ---------- | --------------------- | --------------------- |
+| `--url`    | `WEBSCREENSHOTS__URL` | `https://example.com` |
+
+For the full list of environment variables, see [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md).
+
+---
+
 ## 📁 Output Structure
 
 Screenshots are saved inside folders by **site** and **viewport name**, and filenames follow a customizable pattern.

@@ -87,7 +87,7 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
 
     const config = await getConfig(logService, configOverrides, args.config);
     if (!config.url) {
-      logService.error('Missing required "url". Provide it via CLI or config file.');
+      logService.error('Missing required "url". Provide it via CLI, config file or enviroment variables.');
       process.exit(1);
     }
 

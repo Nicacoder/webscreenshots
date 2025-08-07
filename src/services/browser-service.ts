@@ -1,5 +1,5 @@
 import { Viewport } from 'puppeteer';
-import { BrowserOptions, CaptureOptions } from '../config/config.types.js';
+import { CaptureOptions } from '../config/config.types.js';
 
 export interface BrowserService {
   extractLinks(url: string): Promise<string[]>;

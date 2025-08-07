@@ -120,19 +120,16 @@ describe('crawlSite', () => {
       return ['https://example.com/good'];
     });
 
-    const cleanup = vi.fn();
-
     const browserService = {
       captureScreenshot: vi.fn(),
       extractLinks,
-      cleanup,
+      cleanup: vi.fn(),
     };
 
     const result = await crawlSite(browserService, mockLogService, 'https://example.com/bad', {}, defaultRetryOptions);
 
     expect(result).toEqual([]);
     expect(extractLinks).toHaveBeenCalled();
-    expect(cleanup).toHaveBeenCalled();
   });
 
   it('should respect dynamicRoutesLimit', async () => {

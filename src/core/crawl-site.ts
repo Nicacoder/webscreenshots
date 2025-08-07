@@ -77,6 +77,5 @@ export async function crawlSite(
     }
   }
 
-  await browserService.cleanup();
   return Array.from(visited);
 }

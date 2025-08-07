@@ -41,6 +41,7 @@
     "access": "public"
   },
   "dependencies": {
+    "dotenv": "^17.2.1",
     "puppeteer": "^24.15.0",
     "yargs": "^17.7.2"
   },

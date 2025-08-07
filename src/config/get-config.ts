@@ -1,23 +1,30 @@
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
-import { WebscreenshotsConfig } from './config.types.js';
+import { Viewport, WebscreenshotsConfig } from './config.types.js';
 import { LogService } from '../services/log-service.js';
+import { getString, getBoolean, getNumber, cleanObject, getJson } from './config-utils.js';
+
+dotenv.config();
 
 const DEFAULT_CONFIG: WebscreenshotsConfig = {
   url: '',
   outputDir: 'screenshots',
   outputPattern: '{host}/{viewport}/{host}-{viewport}-{route}.{ext}',
   routes: [''],
+
   browserOptions: {
     headless: true,
     args: undefined,
   },
+
   captureOptions: {
     fullPage: true,
     imageType: 'png',
     quality: undefined,
   },
+
   viewports: [
     {
       name: 'desktop',
@@ -26,8 +33,10 @@ const DEFAULT_CONFIG: WebscreenshotsConfig = {
       deviceScaleFactor: 1,
     },
   ],
+
   crawl: false,
   crawlOptions: undefined,
+
   retryOptions: {
     maxAttempts: 3,
     delayMs: 0,
@@ -39,48 +48,124 @@ export async function getConfig(
   overrides: Partial<WebscreenshotsConfig> = {},
   configPath?: string
 ): Promise<WebscreenshotsConfig> {
+  const fileConfig = await loadConfigFromFile(logService, configPath);
+  const envConfig = loadConfigFromEnv(logService);
+
+  return {
+    url: overrides.url ?? envConfig.url ?? fileConfig.url ?? DEFAULT_CONFIG.url,
+    outputDir: overrides.outputDir ?? envConfig.outputDir ?? fileConfig.outputDir ?? DEFAULT_CONFIG.outputDir,
+    outputPattern:
+      overrides.outputPattern ?? envConfig.outputPattern ?? fileConfig.outputPattern ?? DEFAULT_CONFIG.outputPattern,
+    routes: overrides.routes ?? envConfig.routes ?? fileConfig.routes ?? DEFAULT_CONFIG.routes,
+
+    browserOptions: {
+      ...DEFAULT_CONFIG.browserOptions,
+      ...fileConfig.browserOptions,
+      ...envConfig.browserOptions,
+      ...overrides.browserOptions,
+    },
+
+    captureOptions: {
+      ...DEFAULT_CONFIG.captureOptions,
+      ...fileConfig.captureOptions,
+      ...envConfig.captureOptions,
+      ...overrides.captureOptions,
+    },
+
+    viewports: overrides.viewports ?? envConfig.viewports ?? fileConfig.viewports ?? DEFAULT_CONFIG.viewports,
+
+    crawl: overrides.crawl ?? envConfig.crawl ?? fileConfig.crawl ?? DEFAULT_CONFIG.crawl,
+    crawlOptions: cleanObject({
+      ...DEFAULT_CONFIG.crawlOptions,
+      ...fileConfig.crawlOptions,
+      ...envConfig.crawlOptions,
+      ...overrides.crawlOptions,
+    }),
+
+    retryOptions: {
+      ...DEFAULT_CONFIG.retryOptions,
+      ...fileConfig.retryOptions,
+      ...envConfig.retryOptions,
+      ...overrides.retryOptions,
+    },
+  };
+}
+
+export async function loadConfigFromFile(
+  logService: LogService,
+  configPath?: string
+): Promise<Partial<WebscreenshotsConfig>> {
   const defaultPaths = ['webscreenshots.json', 'webscreenshots.config.js', 'webscreenshots.config.ts'];
+
   const resolvedPath = configPath
     ? path.resolve(process.cwd(), configPath)
     : defaultPaths.map((p) => path.resolve(process.cwd(), p)).find((p) => fs.existsSync(p));
 
-  let fileConfig: Partial<WebscreenshotsConfig> = {};
-  if (resolvedPath) {
-    try {
-      if (resolvedPath.endsWith('.json')) {
-        const raw = fs.readFileSync(resolvedPath, 'utf-8');
-        fileConfig = JSON.parse(raw);
-      } else {
-        const imported = await import(pathToFileURL(resolvedPath).href);
-        fileConfig = imported.default ?? imported;
-      }
-      logService.success(`Loaded config from ${resolvedPath}`);
-    } catch (err) {
-      logService.error(`Failed to load config from ${resolvedPath}:`);
-      process.exit();
-    }
-  } else {
-    logService.warning('No config file found, using defaults');
+  if (!resolvedPath) {
+    logService.info('No config file found, using defaults');
+    return {};
   }
 
-  return {
-    url: overrides.url ?? fileConfig.url ?? DEFAULT_CONFIG.url,
-    outputDir: overrides.outputDir ?? fileConfig.outputDir ?? DEFAULT_CONFIG.outputDir,
-    outputPattern: overrides.outputPattern ?? fileConfig.outputPattern ?? DEFAULT_CONFIG.outputPattern,
-    routes: overrides.routes ?? fileConfig.routes ?? DEFAULT_CONFIG.routes,
-    browserOptions: { ...DEFAULT_CONFIG.browserOptions, ...fileConfig.browserOptions, ...overrides.browserOptions },
-    captureOptions: { ...DEFAULT_CONFIG.captureOptions, ...fileConfig.captureOptions, ...overrides.captureOptions },
-    viewports: overrides.viewports ?? fileConfig.viewports ?? DEFAULT_CONFIG.viewports,
-    crawl: overrides.crawl ?? fileConfig.crawl ?? DEFAULT_CONFIG.crawl,
-    crawlOptions: {
-      ...DEFAULT_CONFIG.crawlOptions,
-      ...fileConfig.crawlOptions,
-      ...overrides.crawlOptions,
+  try {
+    if (resolvedPath.endsWith('.json')) {
+      const raw = fs.readFileSync(resolvedPath, 'utf-8');
+      logService.success(`Loaded config from ${resolvedPath}`);
+      return JSON.parse(raw);
+    } else {
+      const imported = await import(pathToFileURL(resolvedPath).href);
+      logService.success(`Loaded config from ${resolvedPath}`);
+      return imported.default ?? imported;
+    }
+  } catch (error) {
+    logService.error(
+      `Failed to load config from ${resolvedPath}: ${error instanceof Error ? error.message : String(error)}\n`
+    );
+    process.exit(1);
+  }
+}
+
+export function loadConfigFromEnv(logService: LogService): Partial<WebscreenshotsConfig> {
+  const env = process.env;
+
+  const rawConfig = {
+    url: getString(env, 'WEBSCREENSHOTS__URL'),
+    outputDir: getString(env, 'WEBSCREENSHOTS__OUTPUTDIR'),
+    outputPattern: getString(env, 'WEBSCREENSHOTS__OUTPUTPATTERN'),
+    routes: getString(env, 'WEBSCREENSHOTS__ROUTES')?.split(','),
+
+    browserOptions: {
+      headless: getBoolean(env, 'WEBSCREENSHOTS__BROWSEROPTIONS__HEADLESS'),
+      args: getString(env, 'WEBSCREENSHOTS__BROWSEROPTIONS__ARGS')?.split(','),
     },
+
+    captureOptions: {
+      fullPage: getBoolean(env, 'WEBSCREENSHOTS__CAPTUREOPTIONS__FULLPAGE'),
+      imageType: getString(env, 'WEBSCREENSHOTS__CAPTUREOPTIONS__IMAGETYPE'),
+      quality: getNumber(env, 'WEBSCREENSHOTS__CAPTUREOPTIONS__QUALITY'),
+    },
+
+    viewports: getJson<Viewport[]>(env, 'WEBSCREENSHOTS__VIEWPORTS'),
+
+    crawl: getBoolean(env, 'WEBSCREENSHOTS__CRAWL'),
+    crawlOptions: {
+      crawlLimit: getNumber(env, 'WEBSCREENSHOTS__CRAWLOPTIONS__CRAWLLIMIT'),
+      excludeRoutes: getString(env, 'WEBSCREENSHOTS__CRAWLOPTIONS__EXCLUDEROUTES')?.split(','),
+      dynamicRoutesLimit: getNumber(env, 'WEBSCREENSHOTS__CRAWLOPTIONS__DYNAMICROUTESLIMIT'),
+    },
+
     retryOptions: {
-      ...DEFAULT_CONFIG.retryOptions,
-      ...fileConfig.retryOptions,
-      ...overrides.retryOptions,
+      maxAttempts: getNumber(env, 'WEBSCREENSHOTS__RETRYOPTIONS__MAXATTEMPTS'),
+      delayMs: getNumber(env, 'WEBSCREENSHOTS__RETRYOPTIONS__DELAYMS'),
     },
   };
+
+  var config = cleanObject(rawConfig);
+
+  if (Object.keys(config ?? {}).length > 0) {
+    logService.success('Loaded config from environment variables\n');
+  } else {
+    logService.info('No environment variables found\n');
+  }
+
+  return config ?? {};
 }
