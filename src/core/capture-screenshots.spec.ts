@@ -39,6 +39,7 @@ describe('captureScreenshots', () => {
     vi.clearAllMocks();
 
     browserService = {
+      setAuthentication: vi.fn(),
       captureScreenshot: vi.fn(),
       extractLinks: vi.fn(),
       cleanup: vi.fn(),

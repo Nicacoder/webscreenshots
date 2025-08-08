@@ -122,15 +122,34 @@ npx @nicacoder/webscreenshots --config ./path/to/config.json
 
 ---
 
-## 🌱 Using `.env` File
+## 🌱 Using Environment Variables
 
-You can configure key options via environment variables in a `.env` file. Here are the most commonly used ones:
+You can configure key options using environment variables by creating a `.env` file in your project root.
 
-| CLI Option | Environment Variable  | Example Value         |
-| ---------- | --------------------- | --------------------- |
-| `--url`    | `WEBSCREENSHOTS__URL` | `https://example.com` |
+### Quick Start with `.env.example`
 
-For the full list of environment variables, see [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md).
+1. Copy the provided `.env.example` file to `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Open `.env` and uncomment the variables you want to set, adjusting the values as needed.
+
+3. The `.env` file is ignored by git by default to keep your secrets safe.
+
+### Environment Variables Format
+
+The `.env` file supports all configuration options, such as:
+
+- `WEBSCREENSHOTS__URL` — The website URL to capture
+- `WEBSCREENSHOTS__OUTPUTDIR` — Output folder for screenshots
+- `WEBSCREENSHOTS__CAPTUREOPTIONS__FULLPAGE` — Whether to capture full page
+- `WEBSCREENSHOTS__CRAWL` — Enable crawling for internal routes
+- `WEBSCREENSHOTS__AUTHOPTIONS__METHOD` — Authentication method (basic, cookie, form, token)
+- ... and many more (see [`.env.example`](./.env.example) for full list and examples)
+
+You can combine environment variables with CLI arguments or configuration files for flexible setups.
 
 ---
 

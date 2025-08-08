@@ -1,7 +1,9 @@
 import { Viewport } from 'puppeteer';
-import { CaptureOptions } from '../config/config.types.js';
+import { AuthOptions, CaptureOptions } from '../config/config.types.js';
 
 export interface BrowserService {
+  setAuthentication(authOptions?: AuthOptions): Promise<boolean>;
+
   extractLinks(url: string): Promise<string[]>;
 
   captureScreenshot(

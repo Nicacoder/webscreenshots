@@ -106,6 +106,73 @@
         }
       },
       "additionalProperties": false
+    },
+    "retryOptions": {
+      "type": "object",
+      "description": "Retry configuration for capture attempts",
+      "properties": {
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of retry attempts"
+        },
+        "delayMs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Delay in milliseconds between retry attempts"
+        }
+      },
+      "additionalProperties": false
+    },
+    "authOptions": {
+      "type": "object",
+      "description": "Authentication options",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["basic", "cookie", "form", "token"],
+          "description": "Authentication method"
+        },
+        "basic": {
+          "type": "object",
+          "properties": {
+            "username": { "type": "string" },
+            "password": { "type": "string" }
+          },
+          "required": ["username", "password"],
+          "additionalProperties": false
+        },
+        "cookiesPath": {
+          "type": "string",
+          "description": "Path to JSON file containing cookies"
+        },
+        "form": {
+          "type": "object",
+          "properties": {
+            "loginUrl": { "type": "string", "format": "uri" },
+            "inputs": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            },
+            "submit": { "type": "string" },
+            "errorSelector": { "type": "string" },
+            "successSelector": { "type": "string" },
+            "timeoutMs": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["loginUrl", "inputs", "submit", "timeoutMs"],
+          "additionalProperties": false
+        },
+        "token": {
+          "type": "object",
+          "properties": {
+            "header": { "type": "string" },
+            "value": { "type": "string" }
+          },
+          "required": ["header", "value"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

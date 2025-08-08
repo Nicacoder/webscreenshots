@@ -5,6 +5,7 @@ import { LogService } from '../services/log-service';
 
 function createMockBrowserService(linkMap: Record<string, string[]>): BrowserService {
   return {
+    setAuthentication: vi.fn(),
     captureScreenshot: vi.fn(),
     extractLinks: vi.fn(async (url: string) => {
       return linkMap[url] || [];
@@ -121,6 +122,7 @@ describe('crawlSite', () => {
     });
 
     const browserService = {
+      setAuthentication: vi.fn(),
       captureScreenshot: vi.fn(),
       extractLinks,
       cleanup: vi.fn(),

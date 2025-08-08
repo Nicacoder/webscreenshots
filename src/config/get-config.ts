@@ -88,6 +88,8 @@ export async function getConfig(
       ...envConfig.retryOptions,
       ...overrides.retryOptions,
     },
+
+    authOptions: cleanObject({ ...fileConfig.authOptions, ...envConfig.authOptions, ...overrides.authOptions }),
   };
 }
 
@@ -156,6 +158,40 @@ export function loadConfigFromEnv(logService: LogService): Partial<Webscreenshot
     retryOptions: {
       maxAttempts: getNumber(env, 'WEBSCREENSHOTS__RETRYOPTIONS__MAXATTEMPTS'),
       delayMs: getNumber(env, 'WEBSCREENSHOTS__RETRYOPTIONS__DELAYMS'),
+    },
+
+    authOptions: {
+      method: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__METHOD'),
+
+      basic: {
+        username: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__BASIC__USERNAME'),
+        password: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__BASIC__PASSWORD'),
+      },
+
+      cookiesPath: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__COOKIESPATH'),
+
+      form: {
+        loginUrl: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__FORM__LOGINURL'),
+        inputs: getJson<Record<string, string>>(env, 'WEBSCREENSHOTS__AUTHOPTIONS__FORM__INPUTS'),
+        submit: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__FORM__SUBMIT'),
+        errorSelector: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__FORM__ERRORSELECTOR'),
+        successSelector: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__FORM__SUCCESSSELECTOR'),
+        timeoutMs: getNumber(env, 'WEBSCREENSHOTS__AUTHOPTIONS__FORM__TIMEOUT_MS'),
+      },
+
+      token: {
+        header: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__TOKEN__HEADER'),
+        value: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__TOKEN__VALUE'),
+      },
+
+      isAuthenticatedCheck: {
+        url: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__ISAUTHENTICATEDCHECK__URL'),
+        selector: getString(env, 'WEBSCREENSHOTS__AUTHOPTIONS__ISAUTHENTICATEDCHECK__SELECTOR'),
+        notFoundMeansUnauthenticated: getBoolean(
+          env,
+          'WEBSCREENSHOTS__AUTHOPTIONS__ISAUTHENTICATEDCHECK__NOTFOUNDMEANSUNAUTHENTICATED'
+        ),
+      },
     },
   };
 

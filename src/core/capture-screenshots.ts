@@ -5,6 +5,7 @@ import { generateFilePath } from '../utils/generate-file-path.js';
 import { normalizeRoute } from '../utils/normalize-route.js';
 import { normalizeUrl } from '../utils/normalize-url.js';
 import { sleep } from '../utils/sleep.js';
+import { authenticate } from './authenticate.js';
 import { crawlSite } from './crawl-site.js';
 
 export async function captureScreenshots(
@@ -14,6 +15,15 @@ export async function captureScreenshots(
 ): Promise<void> {
   const baseUrl = normalizeUrl(config.url);
   let routes = config.routes.map(normalizeRoute);
+
+  if (config.authOptions) {
+    const authSuccess = await authenticate(browserService, logService, config.authOptions, config.retryOptions);
+    if (!authSuccess) {
+      logService.error('Unable to authenticate. Aborting screenshot capture.');
+      await browserService.cleanup();
+      process.exit(1);
+    }
+  }
 
   if (config.crawl) {
     const crawledUrls = await crawlSite(
@@ -74,7 +84,7 @@ export async function captureScreenshots(
 }
 
 async function captureScreenshot(
-  broserService: BrowserService,
+  browserService: BrowserService,
   logService: LogService,
   url: string,
   outputPath: string,
@@ -94,7 +104,7 @@ async function captureScreenshot(
     }
 
     try {
-      await broserService.captureScreenshot(url, outputPath, captureOptions, viewport);
+      await browserService.captureScreenshot(url, outputPath, captureOptions, viewport);
       logService.success(`Saved ${url} → ${outputPath}\n`);
       return true;
     } catch (error) {

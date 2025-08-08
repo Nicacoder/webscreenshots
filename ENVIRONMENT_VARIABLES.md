@@ -62,4 +62,55 @@ Below is the full list of environment variables supported by Webscreenshots.
 
 ---
 
+## Authentication options
+
+### General
+
+| Variable                              | Description                                      | Example Value |
+| ------------------------------------- | ------------------------------------------------ | ------------- |
+| `WEBSCREENSHOTS__AUTHOPTIONS__METHOD` | Auth method (`basic`, `cookie`, `form`, `token`) | `basic`       |
+
+---
+
+### Basic Auth
+
+| Variable                                       | Description        | Example Value |
+| ---------------------------------------------- | ------------------ | ------------- |
+| `WEBSCREENSHOTS__AUTHOPTIONS__BASIC__USERNAME` | HTTP Auth username | `admin`       |
+| `WEBSCREENSHOTS__AUTHOPTIONS__BASIC__PASSWORD` | HTTP Auth password | `secret`      |
+
+---
+
+### Cookie Auth
+
+| Variable                                   | Description                          | Example Value    |
+| ------------------------------------------ | ------------------------------------ | ---------------- |
+| `WEBSCREENSHOTS__AUTHOPTIONS__COOKIESPATH` | Path to JSON file containing cookies | `./cookies.json` |
+
+> **Note:** The cookie file must contain a **JSON array** of cookie objects, each with properties like `name`, `value`, `domain`, `path`, `expires`, `httpOnly`, `secure`, `sameSite`, and `sourceScheme`.
+
+---
+
+### Form-based Auth
+
+| Variable                                             | Description                               | Example Value                                                            |
+| ---------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------ |
+| `WEBSCREENSHOTS__AUTHOPTIONS__FORM__LOGINURL`        | Login page URL                            | `https://example.com/login`                                              |
+| `WEBSCREENSHOTS__AUTHOPTIONS__FORM__INPUTS`          | JSON object of input selectors and values | `{"input[name=email]":"user@example.com","input[name=password]":"P4$$"}` |
+| `WEBSCREENSHOTS__AUTHOPTIONS__FORM__SUBMIT`          | Submit button selector                    | `button[type=submit]`                                                    |
+| `WEBSCREENSHOTS__AUTHOPTIONS__FORM__ERRORSELECTOR`   | Error selector                            | `.error`                                                                 |
+| `WEBSCREENSHOTS__AUTHOPTIONS__FORM__SUCCESSSELECTOR` | Success selector                          | `.dashboard`                                                             |
+| `WEBSCREENSHOTS__AUTHOPTIONS__FORM__TIMEOUT_MS`      | Timeout in ms                             | `5000`                                                                   |
+
+---
+
+### Token-based Auth
+
+| Variable                                     | Description      | Example Value   |
+| -------------------------------------------- | ---------------- | --------------- |
+| `WEBSCREENSHOTS__AUTHOPTIONS__TOKEN__HEADER` | Auth header name | `Authorization` |
+| `WEBSCREENSHOTS__AUTHOPTIONS__TOKEN__VALUE`  | Auth token value | `Bearer abc123` |
+
+---
+
 _For additional configuration examples, see the documentation or sample config files._
