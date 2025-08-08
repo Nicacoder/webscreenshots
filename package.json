@@ -35,7 +35,10 @@
     "test": "vitest"
   },
   "files": [
-    "dist"
+    "dist",
+    "AUTHENTICATION.md",
+    "CONFIGURATION.md",
+    ".env.example"
   ],
   "publishConfig": {
     "access": "public"

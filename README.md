@@ -10,10 +10,9 @@ Supports crawling, full-page capture, and custom configuration.
 - Capture full-page or viewport-specific screenshots
 - Supports multiple viewports
 - Crawl your site to auto-discover internal pages
-- CLI and config-based usage
-- Custom image format and quality
-- JPEG/WebP quality control
+- Custom image format
 - Headless or non-headless mode
+- Authentication Support (Basic, Cookie, Form, Token)
 
 ---
 
@@ -41,44 +40,24 @@ npm install --save-dev @nicacoder/webscreenshots
 npx @nicacoder/webscreenshots --url https://example.com
 ```
 
-#### ⚙️ CLI Options
-
-| Flag                   | Type      | Description                                            |
-| ---------------------- | --------- | ------------------------------------------------------ |
-| `--url`                | string    | Website URL to capture (required unless set in config) |
-| `--output`             | string    | Output directory for screenshots                       |
-| `--outputPattern`      | string    | Pattern for generated file paths and names             |
-| `--config`             | string    | Path to a config file (`.json`, `.js`, or `.ts`)       |
-| `--routes`             | string\[] | Specific routes to capture (`/`, `/about`, etc.)       |
-| `--excludeRoutes`      | string\[] | Routes to exclude during crawling                      |
-| `--crawl`              | boolean   | Enable crawling to auto-discover internal links        |
-| `--crawlLimit`         | number    | Max number of pages to crawl                           |
-| `--dynamicRoutesLimit` | number    | Max number of dynamic routes per group during crawl    |
-| `--fullPage`           | boolean   | Capture the entire scrollable page                     |
-| `--imageType`          | string    | Screenshot format: `png`, `jpeg`, or `webp`            |
-| `--quality`            | number    | Image quality (0–100, only for `jpeg` and `webp`)      |
-| `--headless`           | boolean   | Run browser in headless mode (default: true)           |
-| `--browserArgs`        | string\[] | Extra arguments to pass to `puppeteer.launch()`        |
-| `--maxAttempts`        | number    | Max number of attempts before giving up (default: 1)   |
-| `--delayMs`            | number    | Delay in ms between retry attempts (default: 0)        |
-
 ---
 
-### With Configuration File
+## ⚙️ Configuration
 
-Create a `webscreenshots.json` and run:
+You can configure Webscreenshots in several ways:
 
-```bash
-npx @nicacoder/webscreenshots
-```
+1. **CLI Arguments** – Pass options directly when running the CLI, e.g. `--url https://example.com`.
+2. **Configuration File** – Provide a `.json` config file with all your settings.
+3. **Environment Variables** – Set environment variables directly or via a `.env` file.
 
-Or pass the config manually:
+The precedence order is:
+**CLI Arguments > Environment Variables > Configuration File**
 
-```bash
-npx @nicacoder/webscreenshots --config ./path/to/config.json
-```
+That means CLI arguments override environment variables, which in turn override configuration file settings.
 
-#### 📝 Configuration File (`webscreenshots.json`)
+### Using a Configuration File
+
+Create a `webscreenshots.json` config file with your settings, for example:
 
 ```json
 {
@@ -120,36 +99,37 @@ npx @nicacoder/webscreenshots --config ./path/to/config.json
 }
 ```
 
+Run the CLI with the config file:
+
+```bash
+npx @nicacoder/webscreenshots --config ./webscreenshots.json
+```
+
+### Using Environment Variables
+
+You can configure Webscreenshots by setting environment variables. For example:
+
+```bash
+WEBSCREENSHOTS__URL=https://example.com WEBSCREENSHOTS__OUTPUTDIR=./screenshots npx @nicacoder/webscreenshots
+```
+
+Or by defining an `.env` file:
+
+```env
+WEBSCREENSHOTS__URL=https://example.com
+WEBSCREENSHOTS__OUTPUTDIR=custom-screenshots
+WEBSCREENSHOTS__CAPTUREOPTIONS__FULLPAGE=true
+WEBSCREENSHOTS__CAPTUREOPTIONS__IMAGETYPE=jpeg
+WEBSCREENSHOTS__CAPTUREOPTIONS__QUALITY=80
+WEBSCREENSHOTS__BROWSEROPTIONS__HEADLESS=true
+```
+
+The CLI will automatically use the `.env` file if present.
+You can use the provided [`.env.example`](./.env.example) file as a starting point by copying it to `.env` and modifying the values as needed.
+
 ---
 
-## 🌱 Using Environment Variables
-
-You can configure key options using environment variables by creating a `.env` file in your project root.
-
-### Quick Start with `.env.example`
-
-1. Copy the provided `.env.example` file to `.env`:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Open `.env` and uncomment the variables you want to set, adjusting the values as needed.
-
-3. The `.env` file is ignored by git by default to keep your secrets safe.
-
-### Environment Variables Format
-
-The `.env` file supports all configuration options, such as:
-
-- `WEBSCREENSHOTS__URL` — The website URL to capture
-- `WEBSCREENSHOTS__OUTPUTDIR` — Output folder for screenshots
-- `WEBSCREENSHOTS__CAPTUREOPTIONS__FULLPAGE` — Whether to capture full page
-- `WEBSCREENSHOTS__CRAWL` — Enable crawling for internal routes
-- `WEBSCREENSHOTS__AUTHOPTIONS__METHOD` — Authentication method (basic, cookie, form, token)
-- ... and many more (see [`.env.example`](./.env.example) for full list and examples)
-
-You can combine environment variables with CLI arguments or configuration files for flexible setups.
+For full details on all available configuration options, their CLI flags, config file keys, and environment variable equivalents, see the [CONFIGURATION.md](./CONFIGURATION.md) file.
 
 ---
 
@@ -193,6 +173,19 @@ You can customize the pattern in your config or CLI options, including adding ti
 ```
 
 Where `{timestamp}` is an ISO timestamp safe for filenames (colons and dots replaced with dashes).
+
+---
+
+## 🔐 Authentication
+
+Webscreenshots supports various authentication methods to handle sites requiring login or tokens, including:
+
+- **Basic Authentication**
+- **Cookie-based Authentication**
+- **Form-based Authentication**
+- **Token-based Authentication**
+
+You can configure authentication via environment variables. See the [AUTHENTICATION.md](./AUTHENTICATION.md) file for full details and examples.
 
 ---
 
