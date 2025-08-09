@@ -2,9 +2,10 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
-import { Viewport, WebscreenshotsConfig } from './config.types.js';
 import { LogService } from '../services/log-service.js';
-import { getString, getBoolean, getNumber, cleanObject, getJson } from './config-utils.js';
+import { cleanObject, getString, getBoolean, getNumber, getJson } from './config-utils.js';
+import { Viewport, WebscreenshotsConfig } from './config.types.js';
+import { validateConfig } from './validate-config.js';
 
 dotenv.config();
 
@@ -51,7 +52,7 @@ export async function getConfig(
   const fileConfig = await loadConfigFromFile(logService, configPath);
   const envConfig = loadConfigFromEnv(logService);
 
-  return {
+  const mergedConfig = {
     url: overrides.url ?? envConfig.url ?? fileConfig.url ?? DEFAULT_CONFIG.url,
     outputDir: overrides.outputDir ?? envConfig.outputDir ?? fileConfig.outputDir ?? DEFAULT_CONFIG.outputDir,
     outputPattern:
@@ -91,6 +92,10 @@ export async function getConfig(
 
     authOptions: cleanObject({ ...fileConfig.authOptions, ...envConfig.authOptions, ...overrides.authOptions }),
   };
+
+  validateConfig(mergedConfig);
+
+  return mergedConfig;
 }
 
 export async function loadConfigFromFile(

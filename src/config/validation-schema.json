@@ -1,21 +1,30 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Webscreenshots Config",
+  "title": "Webscreenshots Merged Config",
   "type": "object",
+  "required": [
+    "url",
+    "outputDir",
+    "outputPattern",
+    "routes",
+    "browserOptions",
+    "captureOptions",
+    "viewports",
+    "crawl",
+    "retryOptions"
+  ],
   "properties": {
-    "$schema": {
-      "type": "string",
-      "description": "Reference to the JSON schema"
-    },
-    "url": { "type": "string", "format": "uri" },
-    "outputDir": { "type": "string" },
-    "outputPattern": { "type": "string" },
+    "url": { "type": "string", "format": "uri", "minLength": 1 },
+    "outputDir": { "type": "string", "minLength": 1 },
+    "outputPattern": { "type": "string", "minLength": 1 },
     "routes": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": { "type": "string" },
+      "minItems": 1
     },
     "browserOptions": {
       "type": "object",
+      "required": ["headless"],
       "properties": {
         "headless": { "type": "boolean" },
         "args": {
@@ -27,6 +36,7 @@
     },
     "captureOptions": {
       "type": "object",
+      "required": ["fullPage", "imageType"],
       "properties": {
         "fullPage": { "type": "boolean" },
         "imageType": { "type": "string", "enum": ["png", "jpeg", "webp"] },
@@ -38,14 +48,16 @@
       "type": "array",
       "items": {
         "type": "object",
+        "required": ["name", "width", "height"],
         "properties": {
-          "name": { "type": "string" },
+          "name": { "type": "string", "minLength": 1 },
           "width": { "type": "integer" },
           "height": { "type": "integer" },
           "deviceScaleFactor": { "type": "number" }
         },
         "additionalProperties": false
-      }
+      },
+      "minItems": 1
     },
     "crawl": { "type": "boolean" },
     "crawlOptions": {
@@ -62,6 +74,7 @@
     },
     "retryOptions": {
       "type": "object",
+      "required": ["maxAttempts"],
       "properties": {
         "maxAttempts": { "type": "integer", "minimum": 1 },
         "delayMs": { "type": "integer", "minimum": 0 }
@@ -70,11 +83,9 @@
     },
     "authOptions": {
       "type": "object",
+      "required": ["method"],
       "properties": {
-        "method": {
-          "type": "string",
-          "enum": ["basic", "cookie", "form", "token"]
-        },
+        "method": { "type": "string", "enum": ["basic", "cookie", "form", "token"] },
         "basic": {
           "type": "object",
           "properties": {
@@ -113,22 +124,10 @@
       },
       "additionalProperties": false,
       "allOf": [
-        {
-          "if": { "properties": { "method": { "const": "basic" } } },
-          "then": { "required": ["basic"] }
-        },
-        {
-          "if": { "properties": { "method": { "const": "cookie" } } },
-          "then": { "required": ["cookiesPath"] }
-        },
-        {
-          "if": { "properties": { "method": { "const": "form" } } },
-          "then": { "required": ["form"] }
-        },
-        {
-          "if": { "properties": { "method": { "const": "token" } } },
-          "then": { "required": ["token"] }
-        }
+        { "if": { "properties": { "method": { "const": "basic" } } }, "then": { "required": ["basic"] } },
+        { "if": { "properties": { "method": { "const": "cookie" } } }, "then": { "required": ["cookiesPath"] } },
+        { "if": { "properties": { "method": { "const": "form" } } }, "then": { "required": ["form"] } },
+        { "if": { "properties": { "method": { "const": "token" } } }, "then": { "required": ["token"] } }
       ]
     }
   },

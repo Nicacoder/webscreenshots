@@ -197,6 +197,7 @@ This project is built using:
 - **[TypeScript](https://www.typescriptlang.org/)** – Static type checking
 - **[Puppeteer](https://pptr.dev/)** – Headless browser automation for capturing screenshots
 - **[Yargs](https://www.npmjs.com/package/yargs)** – CLI argument parsing
+- **[Ajv](https://ajv.js.org/)** – JSON Schema validator for configuration files
 
 ---
 

@@ -85,7 +85,7 @@ WEBSCREENSHOTS__AUTHOPTIONS__FORM__TIMEOUT_MS=5000
 - `SUBMIT`: CSS selector for the submit button.
 - `ERRORSELECTOR`: CSS selector indicating a login failure (optional).
 - `SUCCESSSELECTOR`: CSS selector indicating a successful login (optional).
-- `TIMEOUT_MS`: Maximum wait time after submission for success or failure indicators.
+- `TIMEOUT_MS`: Maximum wait time after submission for success or failure indicators (optional).
 
 ---
 

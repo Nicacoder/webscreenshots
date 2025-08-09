@@ -1,4 +1,5 @@
 import { CommandModule, ArgumentsCamelCase } from 'yargs';
+import { WebscreenshotsConfig } from '../config/config.types.js';
 import { getConfig } from '../config/get-config.js';
 import { captureScreenshots } from '../core/capture-screenshots.js';
 import { LogService } from '../services/log-service.js';
@@ -105,9 +106,12 @@ export const screenshotsCommand: CommandModule<{}, Args> = {
 
     const logService = new LogService();
 
-    const config = await getConfig(logService, configOverrides, args.config);
-    if (!config.url) {
-      logService.error('Missing required "url". Provide it via CLI, config file or enviroment variables.');
+    let config: WebscreenshotsConfig;
+    try {
+      config = await getConfig(logService, configOverrides, args.config);
+    } catch (error) {
+      logService.error(`Invalid configuration.`);
+      logService.log(`↳ Reason: ${error instanceof Error ? error.message : String(error)}\n`);
       process.exit(1);
     }
 

@@ -59,7 +59,7 @@ export interface AuthOptions {
     submit: string;
     errorSelector?: string;
     successSelector?: string;
-    timeoutMs: number;
+    timeoutMs?: number;
   };
 
   token?: {

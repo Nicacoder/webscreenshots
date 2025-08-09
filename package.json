@@ -38,12 +38,15 @@
     "dist",
     "AUTHENTICATION.md",
     "CONFIGURATION.md",
-    ".env.example"
+    ".env.example",
+    "schema.json"
   ],
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "dotenv": "^17.2.1",
     "puppeteer": "^24.15.0",
     "yargs": "^17.7.2"

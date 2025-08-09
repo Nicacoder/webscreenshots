@@ -238,8 +238,41 @@ describe('getConfig', () => {
   });
 
   it('returns default config when nothing else is provided', async () => {
+    process.env.WEBSCREENSHOTS__URL = 'https://localhost';
+
     const config = await getConfig(fakeLogger);
-    expect(config.url).toBe('');
+
+    expect(config.url).toBe('https://localhost');
     expect(config.outputDir).toBe('screenshots');
+    expect(config.outputPattern).toBe('{host}/{viewport}/{host}-{viewport}-{route}.{ext}');
+    expect(config.routes).toEqual(['']);
+
+    expect(config.browserOptions).toBeDefined();
+    expect(config.browserOptions.headless).toBe(true);
+    expect(config.browserOptions.args).toBeUndefined();
+
+    expect(config.captureOptions).toBeDefined();
+    expect(config.captureOptions.fullPage).toBe(true);
+    expect(config.captureOptions.imageType).toBe('png');
+    expect(config.captureOptions.quality).toBeUndefined();
+
+    expect(config.viewports).toHaveLength(1);
+    expect(config.viewports[0]).toEqual({
+      name: 'desktop',
+      width: 1920,
+      height: 1080,
+      deviceScaleFactor: 1,
+    });
+
+    expect(config.crawl).toBe(false);
+    expect(config.crawlOptions).toBeUndefined();
+
+    expect(config.retryOptions).toBeDefined();
+    expect(config.retryOptions.maxAttempts).toBe(3);
+    expect(config.retryOptions.delayMs).toBe(0);
+
+    expect(config.authOptions).toBeUndefined();
+
+    delete process.env.WEBSCREENSHOTS__URL;
   });
 });
